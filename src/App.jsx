@@ -366,7 +366,23 @@ export default function App() {
         // Disparar un efecto de sonido / notificación si el log es del compañero
         if (payload.new && payload.new.user_id !== currentUser?.id && payload.new.status === 'completed') {
           playAudioTone(660, 0.4);
-          showDesktopNotification('¡Compañero Activo!', `¡Tu compañero ha completado un snack de ${payload.new.category}!`);
+          const getPartnerUsernameAndNotify = async () => {
+            let partnerName = 'Un compañero';
+            try {
+              const { data } = await supabase.from('users').select('username').eq('id', payload.new.user_id).maybeSingle();
+              if (data?.username) {
+                partnerName = data.username;
+              }
+            } catch (e) {
+              console.error(e);
+            }
+            if (payload.new.category === 'finalizado') {
+              showDesktopNotification('¡Jornada Finalizada! 🏁', `¡Tu compañero ${partnerName} ha cerrado su jornada laboral por hoy!`);
+            } else {
+              showDesktopNotification('¡Compañero Activo!', `¡Tu compañero ${partnerName} ha completado un snack de ${categoryLabels[payload.new.category] || payload.new.category}!`);
+            }
+          };
+          getPartnerUsernameAndNotify();
         }
       })
       .subscribe();
@@ -723,6 +739,64 @@ export default function App() {
     setGameState('idle_countdown');
   };
 
+  // Finalizar Jornada laboral por hoy
+  const handleCloseDay = async () => {
+    if (!window.confirm('¿Seguro que quieres dar tu jornada laboral por cerrada hoy?')) {
+      return;
+    }
+
+    // Detener timers
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+    if (activeSnackTimerRef.current) clearInterval(activeSnackTimerRef.current);
+
+    // Reproducir tono de finalización alegre
+    playAudioTone(523.25, 0.15); // DO5
+    setTimeout(() => playAudioTone(659.25, 0.15), 100); // MI5
+    setTimeout(() => playAudioTone(783.99, 0.15), 200); // SOL5
+    setTimeout(() => playAudioTone(1046.50, 0.4), 300); // DO6
+
+    // Efecto visual de celebración
+    confetti({
+      particleCount: 80,
+      spread: 60,
+      origin: { y: 0.6 }
+    });
+
+    const logPayload = {
+      id: Math.random().toString(36).substr(2, 9),
+      user_id: currentUser.id,
+      category: 'finalizado',
+      exercises_performed: ['Fin de jornada'],
+      status: 'completed',
+      points_earned: 0,
+      created_at: new Date().toISOString()
+    };
+
+    // Guardar localmente
+    const localLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_today') || '[]');
+    localLogs.push(logPayload);
+    localStorage.setItem('movement_snacks_logs_today', JSON.stringify(localLogs));
+
+    if (supabase) {
+      try {
+        await supabase.from('snacks_log').insert({
+          user_id: logPayload.user_id,
+          category: logPayload.category,
+          exercises_performed: logPayload.exercises_performed,
+          status: logPayload.status,
+          points_earned: logPayload.points_earned
+        });
+      } catch (err) {
+        console.error('Error al guardar log de fin de jornada en Supabase:', err);
+      }
+    } else {
+      setActivityFeed(localLogs.map(l => ({ ...l, users: currentUser })).reverse());
+    }
+
+    // Cambiar estado a esperando inicio de jornada para mañana
+    setGameState('waiting_start');
+  };
+
   // Modificar perfil desde el panel
   const handleEditProfile = () => {
     setGameState('onboarding');
@@ -866,6 +940,11 @@ export default function App() {
             </div>
             <span>{currentUser.username}</span>
           </div>
+          {gameState !== 'onboarding' && gameState !== 'waiting_start' && (
+            <button className="db-btn" style={{ padding: '8px 16px', fontSize: '0.75rem', backgroundColor: '#e11d48', color: '#fff', border: 'none' }} onClick={handleCloseDay}>
+              Finalizar Día 🏁
+            </button>
+          )}
           <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem', borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={() => setShowCatalog(true)}>
             Ver Ejercicios 🎥
           </button>
@@ -1169,8 +1248,10 @@ export default function App() {
                         </div>
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
                           {isCompleted 
-                            ? `Completó Snack de ${categoryLabels[log.category]} (+${log.points_earned} pts)`
-                            : `Se saltó el Snack de ${categoryLabels[log.category]}`}
+                            ? (log.category === 'finalizado'
+                              ? `Finalizó su jornada de trabajo por hoy 🏁`
+                              : `Completó Snack de ${categoryLabels[log.category] || log.category} (+${log.points_earned} pts)`)
+                            : `Se saltó el Snack de ${categoryLabels[log.category] || log.category}`}
                         </span>
                         <span className="activity-time">
                           {date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
