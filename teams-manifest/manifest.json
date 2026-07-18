@@ -1,0 +1,41 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "e45851ef-7a91-4966-bd95-b0496152ef41",
+  "packageName": "com.movementsnacks.dashboard",
+  "developer": {
+    "name": "Miquel & Co",
+    "websiteUrl": "https://github.com/miquelangel",
+    "privacyUrl": "https://github.com/miquelangel/privacy",
+    "termsOfUseUrl": "https://github.com/miquelangel/terms"
+  },
+  "name": {
+    "short": "Snacks de Movimiento",
+    "full": "Snacks de Movimiento - Competición Saludable"
+  },
+  "description": {
+    "short": "2 minutos de actividad para romper el sedentarismo en tu jornada.",
+    "full": "Aplicación gamificada de snacks de movimiento inspirada en Darebee. Te avisa cada cierto tiempo para hacer 2 minutos de ejercicio físico estructurado, permitiéndote competir en tiempo real con tus compañeros de equipo."
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#ea580c",
+  "staticTabs": [
+    {
+      "entityId": "movementSnacksTab",
+      "name": "Snacks Movimiento",
+      "contentUrl": "https://miquelangelribas.github.io/Movement_Snacks/",
+      "websiteUrl": "https://miquelangelribas.github.io/Movement_Snacks/",
+      "scopes": ["personal"]
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": [
+    "*.github.io",
+    "localhost",
+    "*.supabase.co"
+  ]
+}

@@ -1,0 +1,1040 @@
+/* index.css - Rediseño Corporativo Premium (Estilo Garmin/Fitness de Alta Gama) */
+
+:root {
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --border-color: rgba(15, 23, 42, 0.08);
+  --border-focus: #0f172a;
+  
+  /* Paleta Deportiva Garmin Premium */
+  --accent: #dc2626; /* Rojo Garmin */
+  --accent-hover: #b91c1c;
+  --accent-light: #fef2f2;
+  --accent-glow: rgba(220, 38, 38, 0.15);
+  
+  /* Anatomía del cuerpo */
+  --anatomy-base: #e2e8f0;
+  --anatomy-inactive: #f1f5f9;
+  
+  /* Sombras Suaves y Elegantes */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 10px 25px -3px rgba(15, 23, 42, 0.04), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor Principal */
+.app-container {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  transition: max-width 0.3s ease;
+}
+
+.app-container.workout-focus {
+  max-width: 1250px;
+}
+
+/* Cabecera Premium */
+header {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  padding: 24px 32px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+  border-left: 4px solid var(--accent);
+  padding-left: 16px;
+}
+
+/* Perfil de Usuario con Monograma */
+.user-tag {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.monogram {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+  text-transform: uppercase;
+}
+
+/* Paleta de gradientes mates elegantes para monogramas */
+.m-grad-1 { background: linear-gradient(135deg, #4f46e5, #3730a3); }
+.m-grad-2 { background: linear-gradient(135deg, #0d9488, #115e59); }
+.m-grad-3 { background: linear-gradient(135deg, #2563eb, #1e40af); }
+.m-grad-4 { background: linear-gradient(135deg, #db2777, #9d174d); }
+.m-grad-5 { background: linear-gradient(135deg, #ea580c, #9a3412); }
+.m-grad-6 { background: linear-gradient(135deg, #16a34a, #166534); }
+.m-grad-7 { background: linear-gradient(135deg, #4b5563, #1f2937); }
+
+/* Grid Principal (Columna principal de doble tamaño) */
+.main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+}
+
+@media (max-width: 900px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tarjetas Premium */
+.db-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.db-card-header {
+  border-bottom: 1.5px solid var(--border-color);
+  padding-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.db-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+}
+
+/* Botones Premium */
+.db-btn {
+  background: var(--text-primary);
+  color: #ffffff;
+  border: 1px solid var(--text-primary);
+  border-radius: 8px;
+  padding: 14px 28px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.85rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.db-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.db-btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1.5px solid var(--text-primary);
+}
+
+.db-btn-secondary:hover {
+  background: #f8fafc;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.db-btn-accent {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.db-btn-accent:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.db-btn:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Formularios y Ajustes */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.form-control {
+  border: 1.5px solid var(--border-color);
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+}
+
+.form-control:focus {
+  border-color: var(--text-primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.05);
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.monogram-option {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 2px solid transparent;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+}
+
+.monogram-option:hover {
+  transform: scale(1.1);
+}
+
+.monogram-option.selected {
+  border-color: var(--text-primary);
+  transform: scale(1.15);
+  box-shadow: 0 0 0 3px var(--border-color);
+}
+
+/* Widget Anatómico (Garmin Style) */
+.anatomy-widget {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.anatomy-widget-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 6px;
+  width: 100%;
+  text-align: center;
+}
+
+.anatomy-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .anatomy-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.anatomy-view-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.anatomy-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.08em;
+}
+
+/* Temporizador del Ejercicio */
+.timer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border-color);
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.timer-countdown {
+  font-size: 4rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.timer-phase-title {
+  font-size: 1.1rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 8px;
+}
+
+/* Línea de tiempo de fases */
+.phases-timeline {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.phase-step {
+  border-top: 4px solid #e2e8f0;
+  padding-top: 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #94a3b8;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.phase-step.active {
+  border-top-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.phase-step.completed {
+  border-top-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+/* Tooltips del Calendario de Campeones */
+.tooltip-trigger {
+  position: relative;
+}
+
+.tooltip-content {
+  visibility: hidden;
+  width: 220px;
+  background-color: #0f172a;
+  color: #ffffff;
+  text-align: left;
+  border-radius: 8px;
+  padding: 10px 12px;
+  position: absolute;
+  z-index: 1000;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.25s, visibility 0.25s;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  border: 1.5px solid var(--border-color);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.tooltip-content::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -6px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: #0f172a transparent transparent transparent;
+}
+
+.tooltip-trigger:hover .tooltip-content {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Marcadores y Feeds */
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.leaderboard-item {
+  border: 1px solid var(--border-color);
+  padding: 16px 20px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card);
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.leaderboard-item:hover {
+  border-color: var(--text-primary);
+  transform: translateX(2px);
+}
+
+.leaderboard-rank {
+  font-weight: 900;
+  font-size: 1rem;
+  color: #94a3b8;
+  width: 24px;
+}
+
+.leaderboard-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-grow: 1;
+}
+
+.leaderboard-points {
+  font-weight: 850;
+  color: var(--accent);
+  font-size: 1.05rem;
+}
+
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.activity-item {
+  border-left: 3px solid var(--border-color);
+  padding-left: 16px;
+  margin-left: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.activity-time {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* Banner de Notificación */
+.notification-banner {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #991b1b;
+}
+
+/* Checkbox */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-group input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+.checkbox-group label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Carrusel de Fotogramas (Filmstrip) */
+.filmstrip-container {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 12px 4px;
+  width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.filmstrip-card {
+  flex: 0 0 220px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+}
+
+.filmstrip-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.filmstrip-video-container {
+  width: 100%;
+  height: 110px;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: #000;
+}
+
+.filmstrip-card-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.filmstrip-card-desc {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.filmstrip-card-duration {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+/* Visor del Mapa Anatómico Activo (Garmin Style) */
+.active-anatomy-container {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.active-anatomy-badge {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 6px;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* Visor de Video Activo Local */
+.active-video-widget {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.active-video-container {
+  width: 100%;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: #000;
+}
+
+.active-video-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 6px;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+/* Overlay de Cuenta Atrás (Estilo Garmin) */
+.countdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.96); /* Fondo ultra oscuro y elegante */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  z-index: 999; /* Asegura estar encima de todo */
+  color: #ffffff;
+  animation: fade-in 0.2s ease-out;
+}
+
+.countdown-number {
+  font-size: 8rem;
+  font-weight: 900;
+  color: var(--accent); /* Garmin Red */
+  text-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+  line-height: 1;
+  animation: count-ping 1s ease-in-out infinite;
+}
+
+.countdown-label {
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #94a3b8;
+  margin-top: 12px;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes count-ping {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+}
+
+/* Pacer de Respiración Guiada */
+.breathing-pacer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 340px;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 12px;
+  border: 1.5px dashed var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.breathing-circle {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 4px solid var(--accent); /* Garmin Red por defecto */
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.breathing-circle.inhale {
+  transform: scale(1.45);
+  border-color: var(--accent);
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0) 70%);
+  box-shadow: 0 0 45px rgba(239, 68, 68, 0.4);
+  transition: all 4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.breathing-circle.hold {
+  transform: scale(1.45);
+  border-color: #f59e0b; /* Ámbar para retener */
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0) 70%);
+  box-shadow: 0 0 45px rgba(245, 158, 11, 0.35);
+  transition: all 2s linear;
+}
+
+.breathing-circle.exhale {
+  transform: scale(0.8);
+  border-color: #3b82f6; /* Azul para soltar */
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0) 70%);
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.25);
+  transition: all 4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.breathing-text {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-top: 24px;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  text-align: center;
+  height: 28px;
+}
+
+.breathing-subtext {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  text-align: center;
+}
+
+/* --- CATÁLOGO DE EJERCICIOS (MODAL OVERLAY) --- */
+.catalog-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.catalog-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  border-radius: 20px;
+  width: 90%;
+  max-width: 1050px;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.catalog-header {
+  padding: 24px 32px;
+  border-bottom: 1.5px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+}
+
+.catalog-header-title {
+  font-size: 1.25rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-left: 4px solid var(--accent);
+  padding-left: 12px;
+  color: var(--text-primary);
+}
+
+.catalog-close-btn {
+  background: #f1f5f9;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.catalog-close-btn:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+  transform: rotate(90deg);
+}
+
+.catalog-content {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.catalog-tab-bar {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  border-bottom: 1.5px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.catalog-tab-btn {
+  background: transparent;
+  border: 1.5px solid var(--border-color);
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.catalog-tab-btn:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.catalog-tab-btn.active {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.catalog-tab-btn.active:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.exercise-catalog-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.exercise-catalog-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(220, 38, 38, 0.15);
+}
+
+.exercise-video-thumbnail-container {
+  width: 100%;
+  height: 180px;
+  background: #0f172a;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.exercise-video-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+  transition: transform 0.4s ease;
+}
+
+.exercise-catalog-card:hover .exercise-video-thumbnail-img {
+  transform: scale(1.05);
+}
+
+.exercise-play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+.exercise-video-thumbnail-container:hover .exercise-play-overlay {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.exercise-play-btn {
+  background: var(--accent);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.35);
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.exercise-video-thumbnail-container:hover .exercise-play-btn {
+  transform: scale(1.15);
+  background: var(--accent-hover);
+}
+
+.exercise-card-info {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 10px;
+}
+
+.exercise-card-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.exercise-card-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.exercise-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.exercise-badge {
+  background: #f1f5f9;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 30px;
+  font-size: 0.65rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
