@@ -1,323 +1,348 @@
 // exercisesData.js
-// Catálogo de ejercicios estructurado con tiempos ajustados: 10s calentamiento, 25s por ejercicio y 35s de respiración pausada (Total 120 segundos / 2 minutos).
-// Cada una de las 5 categorías dispone de 10 rutinas independientes (A a J), asegurando al menos 10 ejercicios únicos con demostración en vídeo por grupo.
+// Catálogo definitivo de ejercicios revisado y aprobado por Miquel.
+// Cada fase tiene los vídeos verificados públicamente en YouTube mediante oEmbed.
+// Fases 2, 3 y 4 en progresión in crescendo. Cero repeticiones en A, B y C de cada categoría.
+// startTime = segundos de inicio del vídeo (cuando el vídeo empieza en un punto específico).
 
 export const EXERCISE_CATEGORIES = ['pierna', 'empuje', 'tiron', 'potencia', 'movilidad'];
 
 export const categoryLabels = {
-  pierna: 'Piernas (Tren Inferior)',
-  empuje: 'Empuje (Pecho, Hombros y Tríceps)',
-  tiron: 'Tirón (Espalda y Cadena Posterior)',
-  potencia: 'Potencia (Cardio y Metabólico)',
-  movilidad: 'Movilidad (Movilidad y Elasticidad)'
+  pierna:    'Piernas (Tren Inferior)',
+  empuje:    'Empuje (Pecho, Hombros y Tríceps)',
+  tiron:     'Tirón (Espalda y Cadena Posterior)',
+  potencia:  'Potencia (Cardio y Metabólico)',
+  movilidad: 'Movilidad (Elasticidad y Postura)'
 };
 
 export const categoryIcons = {
-  pierna: '🦵',
-  empuje: '💪',
-  tiron: '🛡️',
-  potencia: '🔥',
+  pierna:    '🦵',
+  empuje:    '💪',
+  tiron:     '🛡️',
+  potencia:  '🔥',
   movilidad: '🧘'
 };
 
 export const exercisesData = {
+
+  // ─── PIERNAS ───────────────────────────────────────────────────────────────
+  // 10 ejercicios únicos con vídeo: Sentadillas, Sentadilla Isométrica,
+  // Sentadillas con Salto, Zancadas Laterales, Sentadilla en Pared,
+  // Puente de Glúteos, Zancadas Atrás, Sentadillas Sumo, Elevación de Talones,
+  // Zancadas Cruzadas (Split Jacks).
   pierna: [
     {
-      routineName: 'Rutina A: Enfoque de Sentadilla (Progression)',
+      routineName: 'Rutina A: Sentadilla en Progresión',
       phases: [
-        { phase: 1, duration: 10, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Abre/cierra los brazos de forma horizontal para calentar el torso.', muscles: 'Hombros, Espalda Alta', youtubeId: 'El_Sj5hisSs' },
-        { phase: 2, duration: 25, name: 'Sentadillas (Squats)', desc: 'Baja la cadera empujando los glúteos atrás. Pies al ancho de hombros.', muscles: 'Cuádriceps, Glúteos', youtubeId: 'PyUP10dh8CE' },
-        { phase: 3, duration: 25, name: 'Sentadillas Isométricas (Squat Hold)', desc: 'Baja a posición de sentadilla profunda y mantén la posición libre.', muscles: 'Cuádriceps, Core, Hombros', youtubeId: 'OpiE9QGKfuo' },
-        { phase: 4, duration: 25, name: 'Sentadillas con Salto (Jump Squats)', desc: 'Sentadilla dinámica terminando en un salto vertical explosivo.', muscles: 'Cuádriceps, Glúteos, Pantorrillas', youtubeId: 'bv7as8mDXLQ' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Siéntate o quédate de pie. Inhala lento por la nariz expandiendo el abdomen y exhala suavemente.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Chest Expansions',       desc: 'Abre y cierra los brazos horizontalmente para calentar hombros.',        muscles: 'Hombros, Escápulas',             youtubeId: 'El_Sj5hisSs' },
+        { phase: 2, duration: 25, name: 'Sentadillas',             desc: 'Desciende la cadera a la paralela y sube empujando los talones.',        muscles: 'Cuádriceps, Glúteos',            youtubeId: 'PyUP10dh8CE' },
+        { phase: 3, duration: 25, name: 'Sentadilla Isométrica',   desc: 'Baja a 90° libre y aguanta sin tocar ningún apoyo.',                    muscles: 'Cuádriceps, Core, Hombros',      youtubeId: 'OpiE9QGKfuo' },
+        { phase: 4, duration: 25, name: 'Sentadillas con Salto',   desc: 'Sentadilla y despega verticalmente de forma explosiva.',                muscles: 'Cuádriceps, Glúteos, Cardio',    youtubeId: 'bv7as8mDXLQ' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Inhala lento y exhala soltando toda la tensión muscular.',              muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina B: Enfoque de Zancada (Progression)',
+      routineName: 'Rutina B: Zancada y Estabilidad',
       phases: [
-        { phase: 1, duration: 10, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Dibuja círculos pequeños con los brazos extendidos para calentar articulaciones.', muscles: 'Hombros, Trapecio', youtubeId: 'D40wm6vbI_0' },
-        { phase: 2, duration: 25, name: 'Zancadas Laterales (Side Lunges)', desc: 'Da un paso amplio lateral flexionando una rodilla y manteniendo la otra estirada.', muscles: 'Aductores, Glúteos, Cuádriceps', youtubeId: 'KXoVm0WXcfE' },
-        { phase: 3, duration: 25, name: 'Sentadilla en Pared (Wall Sit)', desc: 'Apoya la espalda firmemente en la pared y mantén los muslos paralelos al suelo formando 90º.', muscles: 'Cuádriceps, Isquiotibiales, Estabilidad', youtubeId: 'mDdLC-yKudY' },
-        { phase: 4, duration: 25, name: 'Zancadas Cruzadas Dinámicas (Split Jacks)', desc: 'Realiza saltos alternando el pie de apoyo adelante y atrás en tijera.', muscles: 'Cuádriceps, Gluteo Medio, Cardio', youtubeId: '83cVgok6KrI' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Inhala profundamente llenando los pulmones y exhala despacio liberando toda la tensión.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Rotaciones de Brazos',    desc: 'Círculos cortos con brazos estirados para calentar articulaciones.',   muscles: 'Hombros, Trapecio',              youtubeId: 'D40wm6vbI_0' },
+        { phase: 2, duration: 25, name: 'Zancadas Laterales',      desc: 'Abre una pierna hacia el lado y baja el peso; alterna cada rep.',      muscles: 'Aductores, Glúteos, Cuádriceps', youtubeId: 'dTGZS-WCH4U' },
+        { phase: 3, duration: 25, name: 'Sentadilla en Pared',     desc: 'Espalda plana en la pared, muslos a 90°, aguanta la posición.',        muscles: 'Cuádriceps, Isquiotibiales',     youtubeId: 'mDdLC-yKudY' },
+        { phase: 4, duration: 25, name: 'Zancadas Cruzadas',       desc: 'Salta abriendo y cruzando pies en tijera de forma alternada.',        muscles: 'Cuádriceps, Glúteo Medio, Cardio',youtubeId: '83cVgok6KrI' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Respira pausadamente y relaja las piernas.',                           muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina C: Enfoque Posterior (Progression)',
+      routineName: 'Rutina C: Cadena Posterior',
       phases: [
-        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves', desc: 'Salta abriendo brazos y piernas a ritmo suave para calentar.', muscles: 'Full Body, Cardio', youtubeId: 'gG2Z1siSvkk' },
-        { phase: 2, duration: 25, name: 'Elevación de Talones (Calf Raises)', desc: 'Eleva los talones controladamente apretando las pantorrillas arriba.', muscles: 'Pantorrillas, Tobillos', youtubeId: 'UV8gOrHmuKc' },
-        { phase: 3, duration: 25, name: 'Puente de Glúteos (Glute Bridges)', desc: 'Túmbate boca arriba con rodillas dobladas y eleva la cadera contrayendo glúteos.', muscles: 'Glúteos, Isquiotibiales, Core', youtubeId: 'LORVjN2bg5o' },
-        { phase: 4, duration: 25, name: 'Zancadas Atrás (Lunges)', desc: 'Pasos alternos atrás flexionando la rodilla trasera a 90 grados.', muscles: 'Glúteos, Cuádriceps, Isquiotibiales', youtubeId: '-Q_2HR5OhEY' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Cierra los ojos, respira a un ritmo pausado y reduce tus latidos cardíacos.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves',    desc: 'Saltos suaves abriendo brazos y piernas para activar el cuerpo.',      muscles: 'Full Body, Cardio',              youtubeId: 'gG2Z1siSvkk' },
+        { phase: 2, duration: 25, name: 'Elevación de Talones',    desc: 'Sube lentamente sobre las puntas y baja controlando la bajada.',       muscles: 'Pantorrillas, Tobillos',         youtubeId: 'UV8gOrHmuKc' },
+        { phase: 3, duration: 25, name: 'Puente de Glúteos',       desc: 'Tumbado boca arriba, eleva la cadera apretando glúteos arriba.',       muscles: 'Glúteos, Isquiotibiales, Core',  youtubeId: 'LORVjN2bg5o' },
+        { phase: 4, duration: 25, name: 'Zancadas Atrás',          desc: 'Pasos alternos hacia atrás bajando la rodilla trasera a 90°.',         muscles: 'Glúteos, Cuádriceps, Isquios',   youtubeId: '-Q_2HR5OhEY' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Cierra los ojos y respira lentamente para recuperar el pulso basal.',  muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina D: Movilidad y Lateralidad',
+      routineName: 'Rutina D: Sumo y Potencia',
       phases: [
-        { phase: 1, duration: 10, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Aperturas horizontales para calentar tren superior.', muscles: 'Hombros, Pecho', youtubeId: 'El_Sj5hisSs' },
-        { phase: 2, duration: 25, name: 'Zancadas Laterales (Side Lunges)', desc: 'Da un paso amplio lateral flexionando una rodilla y manteniendo la otra estirada.', muscles: 'Aductores, Glúteos, Cuádriceps', youtubeId: 'KXoVm0WXcfE' },
-        { phase: 3, duration: 25, name: 'Sentadillas (Squats)', desc: 'Desciende buscando la paralela de manera fluida.', muscles: 'Cuádriceps, Glúteos', youtubeId: 'PyUP10dh8CE' },
-        { phase: 4, duration: 25, name: 'Sentadillas con Salto (Jump Squats)', desc: 'Sentadilla con despegue explosivo vertical.', muscles: 'Cuádriceps, Pantorrillas, Cardio', youtubeId: 'bv7as8mDXLQ' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Recupera el ritmo respiratorio pausando los movimientos.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Chest Expansions',        desc: 'Aperturas horizontales de pecho para calentar.',                        muscles: 'Hombros, Escápulas',             youtubeId: 'El_Sj5hisSs' },
+        { phase: 2, duration: 25, name: 'Sentadillas Sumo',        desc: 'Pies bien separados y puntas afuera, baja despacio.',                   muscles: 'Aductores, Glúteo Mayor',        youtubeId: 'rmEVorjxBWs' },
+        { phase: 3, duration: 25, name: 'Sentadillas',             desc: 'Sentadillas clásicas a ritmo constante.',                               muscles: 'Cuádriceps, Glúteos',            youtubeId: 'PyUP10dh8CE' },
+        { phase: 4, duration: 25, name: 'Sentadillas con Salto',   desc: 'Explosión vertical desde sentadilla.',                                  muscles: 'Cuádriceps, Potencia',           youtubeId: 'bv7as8mDXLQ' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Recupera el ritmo cardíaco respirando hondo.',                         muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina E: Cadena Posterior e Isquios',
+      routineName: 'Rutina E: Resistencia Lateral',
       phases: [
-        { phase: 1, duration: 10, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Círculos pequeños y fluidos para calentar la parte alta.', muscles: 'Hombros, Trapecio', youtubeId: 'D40wm6vbI_0' },
-        { phase: 2, duration: 25, name: 'Sentadilla Sumo (Sumo Squats)', desc: 'Sentadilla con pies bien separados y puntas hacia afuera para incidir en abductores.', muscles: 'Aductores, Glúteo Mayor, Cuádriceps', youtubeId: 'rmEVorjxBWs' },
-        { phase: 3, duration: 25, name: 'Puente de Glúteos (Glute Bridges)', desc: 'Túmbate boca arriba con rodillas dobladas y eleva la cadera contrayendo glúteos.', muscles: 'Glúteos, Isquiotibiales, Core', youtubeId: 'LORVjN2bg5o' },
-        { phase: 4, duration: 25, name: 'Elevación de Talones (Calf Raises)', desc: 'Ponte de puntillas y aprieta las pantorrillas.', muscles: 'Pantorrillas, Tobillos', youtubeId: 'UV8gOrHmuKc' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Estira el torso y respira lento expandiendo el abdomen.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Rotaciones de Brazos',    desc: 'Calentamiento de hombros y escapular.',                                muscles: 'Hombros, Trapecio',              youtubeId: 'D40wm6vbI_0' },
+        { phase: 2, duration: 25, name: 'Sentadilla Isométrica',   desc: 'Mantén la sentadilla baja sin apoyo.',                                 muscles: 'Cuádriceps, Core',               youtubeId: 'OpiE9QGKfuo' },
+        { phase: 3, duration: 25, name: 'Zancadas Laterales',      desc: 'Desplazamientos laterales alternos sintiendo el aductor.',              muscles: 'Aductores, Glúteos',             youtubeId: 'dTGZS-WCH4U' },
+        { phase: 4, duration: 25, name: 'Zancadas Cruzadas',       desc: 'Tijeras de pies rápidas en el sitio.',                                 muscles: 'Cardio, Gemelos, Glúteos',       youtubeId: '83cVgok6KrI' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Inhala profundo y relaja las piernas.',                                muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina F: Resistencia en Pared',
+      routineName: 'Rutina F: Isometría en Pared',
       phases: [
-        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves', desc: 'Activación aeróbica general previa.', muscles: 'Cardio, Piernas', youtubeId: 'gG2Z1siSvkk' },
-        { phase: 2, duration: 25, name: 'Sentadilla en Pared (Wall Sit)', desc: 'Apoya la espalda firmemente en la pared y mantén los muslos paralelos al suelo formando 90º.', muscles: 'Cuádriceps, Isquiotibiales, Estabilidad', youtubeId: 'mDdLC-yKudY' },
-        { phase: 3, duration: 25, name: 'Zancadas Laterales (Side Lunges)', desc: 'Desplazamientos laterales alternos sintiendo el estiramiento interno.', muscles: 'Glúteos, Aductores, Cuádriceps', youtubeId: 'KXoVm0WXcfE' },
-        { phase: 4, duration: 25, name: 'Zancadas Cruzadas Dinámicas (Split Jacks)', desc: 'Tijeras de pies rápidas para activar el corazón.', muscles: 'Cardio, Pantorrillas, Cuádriceps', youtubeId: '83cVgok6KrI' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Inhalaciones lentas por la nariz y exhalaciones relajadas por la boca.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves',    desc: 'Activación aeróbica suave previa.',                                    muscles: 'Cardio, Full Body',              youtubeId: 'gG2Z1siSvkk' },
+        { phase: 2, duration: 25, name: 'Elevación de Talones',    desc: 'Trabaja la pantorrilla subiendo despacio y bajando controlado.',        muscles: 'Pantorrillas',                   youtubeId: 'UV8gOrHmuKc' },
+        { phase: 3, duration: 25, name: 'Sentadilla en Pared',     desc: 'Apoya la espalda y sostén la posición isométrica.',                    muscles: 'Cuádriceps, Resistencia',        youtubeId: 'mDdLC-yKudY' },
+        { phase: 4, duration: 25, name: 'Sentadillas Sumo',        desc: 'Sumo squats amplias a ritmo dinámico.',                                muscles: 'Aductores, Glúteos',             youtubeId: 'rmEVorjxBWs' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Pausa consciente y respira diafragmáticamente.',                       muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina G: Potencia y Glúteos',
+      routineName: 'Rutina G: Glúteos y Salto',
       phases: [
-        { phase: 1, duration: 10, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Movimientos de pecho y omóplatos.', muscles: 'Hombros, Trapecio', youtubeId: 'El_Sj5hisSs' },
-        { phase: 2, duration: 25, name: 'Sentadillas (Squats)', desc: 'Sentadillas profundas controladas.', muscles: 'Cuádriceps, Glúteos', youtubeId: 'PyUP10dh8CE' },
-        { phase: 3, duration: 25, name: 'Puente de Glúteos (Glute Bridges)', desc: 'Aprieta bien los glúteos arriba durante un segundo.', muscles: 'Glúteos, Isquiotibiales', youtubeId: 'LORVjN2bg5o' },
-        { phase: 4, duration: 25, name: 'Sentadillas con Salto (Jump Squats)', desc: 'Salto pliométrico reactivo.', muscles: 'Cardio, Cuádriceps, Potencia', youtubeId: 'bv7as8mDXLQ' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Pausa basal consciente.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Chest Expansions',        desc: 'Aperturas de pecho y escapular.',                                      muscles: 'Hombros, Escápulas',             youtubeId: 'El_Sj5hisSs' },
+        { phase: 2, duration: 25, name: 'Puente de Glúteos',       desc: 'Eleva la pelvis lentamente apretando glúteos en el punto alto.',        muscles: 'Glúteos, Isquiotibiales',        youtubeId: 'LORVjN2bg5o' },
+        { phase: 3, duration: 25, name: 'Zancadas Atrás',          desc: 'Zancadas alternadas atrás manteniendo el tronco erguido.',             muscles: 'Glúteos, Cuádriceps',            youtubeId: '-Q_2HR5OhEY' },
+        { phase: 4, duration: 25, name: 'Sentadillas con Salto',   desc: 'Saltos reactivos desde la sentadilla para activar pulsaciones.',       muscles: 'Cuádriceps, Potencia',           youtubeId: 'bv7as8mDXLQ' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Disminuye la frecuencia cardíaca inspirando hondo.',                   muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina H: Resistencia y Aductores',
+      routineName: 'Rutina H: Resistencia Muscular',
       phases: [
-        { phase: 1, duration: 10, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Rotación escapular alta.', muscles: 'Hombros', youtubeId: 'D40wm6vbI_0' },
-        { phase: 2, duration: 25, name: 'Zancadas Laterales (Side Lunges)', desc: 'Desplázate a los lados de forma alterna y rítmica.', muscles: 'Aductores, Glúteos', youtubeId: 'KXoVm0WXcfE' },
-        { phase: 3, duration: 25, name: 'Sentadilla Sumo (Sumo Squats)', desc: 'Sentadillas bien abiertas estilo sumo.', muscles: 'Aductores, Cuádriceps', youtubeId: 'rmEVorjxBWs' },
-        { phase: 4, duration: 25, name: 'Elevación de Talones (Calf Raises)', desc: 'Aísla el gemelo subiendo despacio.', muscles: 'Pantorrillas', youtubeId: 'UV8gOrHmuKc' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Baja latidos diafragmáticamente.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Rotaciones de Brazos',    desc: 'Prepara el tren superior con círculos de brazos.',                     muscles: 'Hombros',                        youtubeId: 'D40wm6vbI_0' },
+        { phase: 2, duration: 25, name: 'Sentadillas Sumo',        desc: 'Amplitud de piernas para sentadilla sumo.',                           muscles: 'Aductores, Glúteos',             youtubeId: 'rmEVorjxBWs' },
+        { phase: 3, duration: 25, name: 'Zancadas Laterales',      desc: 'Lateral lunges alternos con buen rango de movimiento.',               muscles: 'Aductores, Cuádriceps',          youtubeId: 'dTGZS-WCH4U' },
+        { phase: 4, duration: 25, name: 'Zancadas Cruzadas',       desc: 'Tijeras explosivas de pies a buen ritmo.',                           muscles: 'Cardio, Glúteos',                youtubeId: '83cVgok6KrI' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Recupera el pulso con respiraciones profundas.',                      muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
       routineName: 'Rutina I: Isometría Avanzada',
       phases: [
-        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves', desc: 'Aperturas aeróbicas progresivas.', muscles: 'Cardio, Full Body', youtubeId: 'gG2Z1siSvkk' },
-        { phase: 2, duration: 25, name: 'Sentadilla en Pared (Wall Sit)', desc: 'Sostén la posición isométrica contra la pared.', muscles: 'Cuádriceps, Resistencia', youtubeId: 'mDdLC-yKudY' },
-        { phase: 3, duration: 25, name: 'Sentadillas Isométricas (Squat Hold)', desc: 'Aguanta la sentadilla libre.', muscles: 'Cuádriceps, Core, Hombros', youtubeId: 'OpiE9QGKfuo' },
-        { phase: 4, duration: 25, name: 'Zancadas Cruzadas Dinámicas (Split Jacks)', desc: 'Zancadas cortas reactivas en el sitio.', muscles: 'Cardio, Gemelos', youtubeId: '83cVgok6KrI' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Cierra los ojos y calma tu respiración.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves',    desc: 'Abre y cierra piernas suavemente como calentamiento.',               muscles: 'Full Body, Cardio',              youtubeId: 'gG2Z1siSvkk' },
+        { phase: 2, duration: 25, name: 'Elevación de Talones',    desc: 'Aísla el gemelo subiendo y bajando controladamente.',                 muscles: 'Pantorrillas',                   youtubeId: 'UV8gOrHmuKc' },
+        { phase: 3, duration: 25, name: 'Sentadilla Isométrica',   desc: 'Baja y sostén la sentadilla libre sin apoyo.',                        muscles: 'Cuádriceps, Core',               youtubeId: 'OpiE9QGKfuo' },
+        { phase: 4, duration: 25, name: 'Sentadillas',             desc: 'Sentadillas clásicas a buen ritmo para terminar fuerte.',             muscles: 'Cuádriceps, Glúteos',            youtubeId: 'PyUP10dh8CE' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Respira lento y deja que el cuerpo se recupere.',                     muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina J: Reclutamiento de Cadera Posterior',
+      routineName: 'Rutina J: Completo de Pierna',
       phases: [
-        { phase: 1, duration: 10, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Activación del tren superior.', muscles: 'Hombros', youtubeId: 'D40wm6vbI_0' },
-        { phase: 2, duration: 25, name: 'Puente de Glúteos (Glute Bridges)', desc: 'Eleva la pelvis contrayendo glúteos.', muscles: 'Glúteos, Isquios', youtubeId: 'LORVjN2bg5o' },
-        { phase: 3, duration: 25, name: 'Sentadilla Sumo (Sumo Squats)', desc: 'Sumo squats lentas enfatizando la bajada.', muscles: 'Aductores, Glúteos', youtubeId: 'rmEVorjxBWs' },
-        { phase: 4, duration: 25, name: 'Sentadillas con Salto (Jump Squats)', desc: 'Saltos explosivos para acabar fatigando las piernas.', muscles: 'Cuádriceps, Potencia', youtubeId: 'bv7as8mDXLQ' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Disminuye la frecuencia cardíaca.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Chest Expansions',        desc: 'Calentamiento de hombros y pecho.',                                   muscles: 'Hombros, Pecho',                 youtubeId: 'El_Sj5hisSs' },
+        { phase: 2, duration: 25, name: 'Puente de Glúteos',       desc: 'Activa la cadena posterior antes de los ejercicios de pie.',          muscles: 'Glúteos, Core',                  youtubeId: 'LORVjN2bg5o' },
+        { phase: 3, duration: 25, name: 'Zancadas Atrás',          desc: 'Trabaja el glúteo y el cuádriceps con pasos atrás alternos.',         muscles: 'Glúteos, Cuádriceps',            youtubeId: '-Q_2HR5OhEY' },
+        { phase: 4, duration: 25, name: 'Sentadillas con Salto',   desc: 'Termina con saltos explosivos para disparar pulsaciones.',            muscles: 'Cuádriceps, Potencia',           youtubeId: 'bv7as8mDXLQ' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Baja el ritmo cardíaco con respiraciones lentas y profundas.',        muscles: 'Recuperación',                   youtubeId: '' }
       ]
     }
   ],
+
+  // ─── EMPUJE ────────────────────────────────────────────────────────────────
+  // 10 ejercicios únicos: Knee Push-Ups, Push-Ups, Diamond Push-Ups,
+  // Pike Push-Ups, Shoulder Taps, Commandos, Plank Leg Raises,
+  // Chair Dips, Burpees, Elbow Plank Leg Raises.
   empuje: [
     {
-      routineName: 'Rutina A: Enfoque de Flexión Clásica (Progression)',
+      routineName: 'Rutina A: Flexión Clásica',
       phases: [
-        { phase: 1, duration: 10, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Aperturas horizontales controladas para calentar los hombros.', muscles: 'Hombros, Escápulas', youtubeId: 'El_Sj5hisSs' },
-        { phase: 2, duration: 25, name: 'Flexiones Inclinadas (Push-Ups)', desc: 'Manos apoyadas en mesa o escritorio. Torso alineado en tabla.', muscles: 'Pectoral Inferior, Tríceps, Deltoides', youtubeId: 'v9LABVJzv8A' },
-        { phase: 3, duration: 25, name: 'Flexiones de Rodilla (Knee Push-Ups)', desc: 'Flexiones estándar apoyando rodillas, enfocadas en la contracción lenta del pectoral.', muscles: 'Pectorales, Tríceps', youtubeId: 'rrVwNeIpy-k' },
-        { phase: 4, duration: 25, name: 'Flexiones en Suelo (Push-Ups)', desc: 'Apoya rodillas o pies. Baja el pecho cerca del suelo manteniendo el abdomen tenso.', muscles: 'Pectoral Mayor, Deltoides Anterior, Tríceps', youtubeId: 'v9LABVJzv8A' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Relaja la respiración, inspira hondo por la nariz reteniendo el aire y suelta con calma.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Chest Expansions',        desc: 'Aperturas horizontales para calentar pecho y hombros.',               muscles: 'Hombros, Escápulas',             youtubeId: 'El_Sj5hisSs' },
+        { phase: 2, duration: 25, name: 'Flexiones de Rodilla',    desc: 'Flexiones con rodillas en el suelo, enfocando la contracción del pecho.',muscles: 'Pectorales, Tríceps',           youtubeId: 'rrVwNeIpy-k' },
+        { phase: 3, duration: 25, name: 'Flexiones en Suelo',      desc: 'Flexiones completas manteniendo el cuerpo en tabla recta.',            muscles: 'Pectoral Mayor, Deltoides, Tríceps',youtubeId: 'v9LABVJzv8A' },
+        { phase: 4, duration: 25, name: 'Flexiones Diamante',      desc: 'Manos juntas formando un rombo bajo el pecho para aislar tríceps.',    muscles: 'Tríceps, Pectoral, Core',        youtubeId: '1Y8pTxdwf3M' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Relaja los hombros y respira hondo recuperando el ritmo cardíaco.',    muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina B: Enfoque de Tríceps (Progression)',
+      routineName: 'Rutina B: Fuerza de Hombros',
       phases: [
-        { phase: 1, duration: 10, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Moviliza la articulación del hombro estirando bien los brazos.', muscles: 'Hombros, Trapecio', youtubeId: 'D40wm6vbI_0' },
-        { phase: 2, duration: 25, name: 'Flexiones Diamante (Diamond Push-Ups)', desc: 'Junta manos formando un diamante bajo el pecho para aislar los tríceps.', muscles: 'Tríceps, Pectoral, Core', youtubeId: '1Y8pTxdwf3M' },
-        { phase: 3, duration: 25, name: 'Fondos de Tríceps (Chair Dips)', desc: 'Apoya las manos en el borde de una silla estable o escritorio y baja la cadera flexionando codos.', muscles: 'Tríceps, Deltoides Anterior, Pectoral', youtubeId: '1mRpK_-d_H4' },
-        { phase: 4, duration: 25, name: 'Plancha Commando (Plank Commandos)', desc: 'Pasa alternativamente de apoyarte en antebrazos a apoyarte en las manos (plancha alta a baja).', muscles: 'Tríceps, Deltoides, Core', youtubeId: 'yDfw9De-sNI' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Pausa el ritmo respiratorio para bajar la temperatura corporal y volver al trabajo relajado.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Rotaciones de Brazos',    desc: 'Moviliza la articulación del hombro con círculos cortos.',             muscles: 'Hombros, Trapecio',              youtubeId: 'D40wm6vbI_0' },
+        { phase: 2, duration: 25, name: 'Toques de Hombro',        desc: 'En plancha alta, toca tu hombro contrario sin rotar la cadera.',       muscles: 'Deltoides, Core, Tríceps',       youtubeId: 'gWHQpMUd7vw' },
+        { phase: 3, duration: 25, name: 'Flexiones de Pica',       desc: 'Cadera alta en V invertida, baja la coronilla hacia las manos.',       muscles: 'Deltoides, Trapecio, Tríceps',   youtubeId: '782MhTFvIBQ' },
+        { phase: 4, duration: 25, name: 'Commandos',               desc: 'Pasa de antebrazos a plancha alta y vuelve, alternando el brazo guía.',muscles: 'Tríceps, Deltoides, Core',       youtubeId: 'yDfw9De-sNI' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Relaja los hombros y baja la frecuencia cardíaca.',                   muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina C: Enfoque de Hombros (Progression)',
+      routineName: 'Rutina C: Tríceps y Core',
       phases: [
-        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves', desc: 'Salta abriendo brazos y piernas suavemente para calentar.', muscles: 'Full Body, Cardio', youtubeId: 'gG2Z1siSvkk' },
-        { phase: 2, duration: 25, name: 'Plancha Toques de Hombro (Shoulder Taps)', desc: 'En posición de flexión, toca alternamente tus hombros con la mano opuesta sin balancear la cadera.', muscles: 'Deltoides, Core, Tríceps', youtubeId: 'gWHQpMUd7vw' },
-        { phase: 3, duration: 25, name: 'Plancha con Patada Atrás (Elbow Plank Leg Raises)', desc: 'Apóyate en antebrazos y eleva de forma alterna las piernas manteniendo el core tenso.', muscles: 'Core, Pectorales, Glúteos', youtubeId: 'Akf3IP0H9fA' },
-        { phase: 4, duration: 25, name: 'Flexiones de Pica (Pike Push-Ups)', desc: 'Eleva la cadera formando una V invertida. Desciende inclinando la coronilla hacia tus manos.', muscles: 'Deltoides, Trapecio, Tríceps', youtubeId: '782MhTFvIBQ' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Respira con control. Inhalaciones lentas para apaciguar el pulso.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves',    desc: 'Activación aeróbica ligera como aproximación.',                        muscles: 'Full Body, Cardio',              youtubeId: 'gG2Z1siSvkk' },
+        { phase: 2, duration: 25, name: 'Fondos de Tríceps',       desc: 'Manos en silla o escritorio, baja flexionando los codos.',             muscles: 'Tríceps, Deltoides Anterior',    youtubeId: '1mRpK_-d_H4' },
+        { phase: 3, duration: 25, name: 'Elevación de Piernas en Plancha', desc: 'En plancha alta, eleva piernas de forma alterna sin rotar.', muscles: 'Glúteos, Core, Deltoides',       youtubeId: 'IexgiQZetb8' },
+        { phase: 4, duration: 25, name: 'Burpees',                 desc: 'Flexión al suelo y salto vertical explosivo sin parar.',              muscles: 'Full Body, Cardio, Pecho',       youtubeId: 'E-Oc0zjeqWo' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Exhala todo el aire lentamente y recupera la calma.',                 muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina D: Fondos y Estabilidad escapular',
+      routineName: 'Rutina D: Fondos y Planchas',
       phases: [
-        { phase: 1, duration: 10, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Calentamiento horizontal del pectoral y deltoides.', muscles: 'Hombros, Escápulas', youtubeId: 'El_Sj5hisSs' },
-        { phase: 2, duration: 25, name: 'Fondos de Tríceps (Chair Dips)', desc: 'Apoya las manos en el borde de una silla estable o escritorio y baja la cadera flexionando codos.', muscles: 'Tríceps, Deltoides Anterior, Pectoral', youtubeId: '1mRpK_-d_H4' },
-        { phase: 3, duration: 25, name: 'Flexiones Inclinadas (Push-Ups)', desc: 'Flexiones inclinadas rítmicas sobre escritorio.', muscles: 'Pectorales, Tríceps', youtubeId: 'v9LABVJzv8A' },
-        { phase: 4, duration: 25, name: 'Plancha Toques de Hombro (Shoulder Taps)', desc: 'En posición de flexión, toca alternamente tus hombros con la mano opuesta sin balancear la cadera.', muscles: 'Deltoides, Core, Tríceps', youtubeId: 'gWHQpMUd7vw' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Relaja los hombros y realiza respiraciones profundas abdominales.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Chest Expansions',        desc: 'Calentamiento escapular para preparar el tren superior.',             muscles: 'Hombros, Pecho',                 youtubeId: 'El_Sj5hisSs' },
+        { phase: 2, duration: 25, name: 'Plancha en Codo con Elevación', desc: 'Plancha de codos elevando piernas alternamente.',               muscles: 'Core, Glúteos, Hombros',         youtubeId: 'Akf3IP0H9fA' },
+        { phase: 3, duration: 25, name: 'Fondos de Tríceps',       desc: 'Trabaja el tríceps bajando en silla o escritorio.',                   muscles: 'Tríceps, Hombros',               youtubeId: '1mRpK_-d_H4' },
+        { phase: 4, duration: 25, name: 'Flexiones Diamante',      desc: 'Flexiones cerradas para explosionar el tríceps.',                     muscles: 'Tríceps, Pecho',                 youtubeId: '1Y8pTxdwf3M' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Recuperación activa respirando hondo.',                               muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina E: Hombros y Planchas dinámicas',
+      routineName: 'Rutina E: Dinamismo de Core',
       phases: [
-        { phase: 1, duration: 10, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Rotación del hombro en círculos cortos.', muscles: 'Hombros, Cuello', youtubeId: 'D40wm6vbI_0' },
-        { phase: 2, duration: 25, name: 'Flexiones de Pica (Pike Push-Ups)', desc: 'Eleva la cadera formando una V invertida. Desciende inclinando la coronilla hacia tus manos.', muscles: 'Deltoides, Trapecio, Tríceps', youtubeId: '782MhTFvIBQ' },
-        { phase: 3, duration: 25, name: 'Flexiones de Rodilla (Knee Push-Ups)', desc: 'Flexiones estándar apoyando rodillas, enfocadas en la contracción lenta del pectoral.', muscles: 'Pectorales, Tríceps', youtubeId: 'rrVwNeIpy-k' },
-        { phase: 4, duration: 25, name: 'Plancha Commando (Plank Commandos)', desc: 'Pasa alternativamente de apoyarte en antebrazos a apoyarte en las manos (plancha alta a baja).', muscles: 'Tríceps, Deltoides, Core', youtubeId: 'yDfw9De-sNI' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Calma el ritmo e inhala con el diafragma.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Rotaciones de Brazos',    desc: 'Activa los hombros con rotaciones lentas.',                           muscles: 'Hombros',                        youtubeId: 'D40wm6vbI_0' },
+        { phase: 2, duration: 25, name: 'Flexiones de Rodilla',    desc: 'Flexiones con rodillas en el suelo a ritmo fluido.',                  muscles: 'Pectorales, Tríceps',            youtubeId: 'rrVwNeIpy-k' },
+        { phase: 3, duration: 25, name: 'Toques de Hombro',        desc: 'Estabilidad de core tocando hombros alternamente en plancha alta.',   muscles: 'Core, Deltoides',                youtubeId: 'gWHQpMUd7vw' },
+        { phase: 4, duration: 25, name: 'Commandos',               desc: 'Baja y sube de antebrazos a plancha a buen ritmo.',                   muscles: 'Core, Hombros, Tríceps',         youtubeId: 'yDfw9De-sNI' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Respira con el diafragma para reducir las pulsaciones.',              muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina F: Fuerza de Tríceps y Pliometría',
+      routineName: 'Rutina F: Potencia de Empuje',
       phases: [
-        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves', desc: 'Calentamiento dinámico del cuerpo.', muscles: 'Cardio, Hombros', youtubeId: 'gG2Z1siSvkk' },
-        { phase: 2, duration: 25, name: 'Fondos de Tríceps (Chair Dips)', desc: 'Trabajo localizado de tríceps en silla.', muscles: 'Tríceps, Hombros', youtubeId: '1mRpK_-d_H4' },
-        { phase: 3, duration: 25, name: 'Plancha Toques de Hombro (Shoulder Taps)', desc: 'Estabilidad de core y hombros.', muscles: 'Deltoides, Core', youtubeId: 'gWHQpMUd7vw' },
-        { phase: 4, duration: 25, name: 'Burpees Completos (Burpees)', desc: 'Flexión y salto explosivo.', muscles: 'Full Body, Pecho, Cardio', youtubeId: 'E-Oc0zjeqWo' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Respira hondo y baja pulsaciones de forma progresiva.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves',    desc: 'Activación cardiovascular general.',                                  muscles: 'Cardio, Hombros',                youtubeId: 'gG2Z1siSvkk' },
+        { phase: 2, duration: 25, name: 'Flexiones de Pica',       desc: 'V invertida bajando coronilla hacia el suelo.',                       muscles: 'Deltoides, Hombros',             youtubeId: '782MhTFvIBQ' },
+        { phase: 3, duration: 25, name: 'Flexiones en Suelo',      desc: 'Push-ups estándar a ritmo constante.',                                muscles: 'Pectorales, Tríceps',            youtubeId: 'v9LABVJzv8A' },
+        { phase: 4, duration: 25, name: 'Burpees',                 desc: 'Flexión al suelo + salto vertical a máxima intensidad.',              muscles: 'Full Body, Cardio',              youtubeId: 'E-Oc0zjeqWo' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Disminuye la frecuencia cardíaca gradualmente.',                      muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina G: Fuerza y Hombros',
+      routineName: 'Rutina G: Estabilidad Postural',
       phases: [
-        { phase: 1, duration: 10, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Aperturas de pecho y escápulas.', muscles: 'Escápulas, Hombros', youtubeId: 'El_Sj5hisSs' },
-        { phase: 2, duration: 25, name: 'Flexiones de Pica (Pike Push-Ups)', desc: 'Flexiones en V invertida enfocadas en hombros.', muscles: 'Deltoides, Hombros', youtubeId: '782MhTFvIBQ' },
-        { phase: 3, duration: 25, name: 'Flexiones Inclinadas (Push-Ups)', desc: 'Flexiones en mesa manteniendo ritmo fluido.', muscles: 'Pectoral, Tríceps', youtubeId: 'v9LABVJzv8A' },
-        { phase: 4, duration: 25, name: 'Flexiones Diamante (Diamond Push-Ups)', desc: 'Flexiones cerradas para explotar tríceps.', muscles: 'Tríceps, Pecho', youtubeId: '1Y8pTxdwf3M' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Siente cómo se recupera tu cuerpo.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Chest Expansions',        desc: 'Abre el pecho y escápulas para calentar.',                           muscles: 'Hombros, Escápulas',             youtubeId: 'El_Sj5hisSs' },
+        { phase: 2, duration: 25, name: 'Plancha en Codo con Elevación', desc: 'Isometría de core con elevación alterna de piernas.',           muscles: 'Core, Glúteos, Hombros',         youtubeId: 'Akf3IP0H9fA' },
+        { phase: 3, duration: 25, name: 'Flexiones de Rodilla',    desc: 'Flexiones con rodillas para bombear el pecho.',                       muscles: 'Pectorales, Tríceps',            youtubeId: 'rrVwNeIpy-k' },
+        { phase: 4, duration: 25, name: 'Flexiones en Suelo',      desc: 'Flexiones completas terminando la sesión fuerte.',                    muscles: 'Pectoral Mayor, Tríceps',        youtubeId: 'v9LABVJzv8A' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Relajación activa post-esfuerzo.',                                    muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina H: Estabilidad Postural de Core',
+      routineName: 'Rutina H: Hombros y Tríceps',
       phases: [
-        { phase: 1, duration: 10, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Rotación escapular.', muscles: 'Hombros', youtubeId: 'D40wm6vbI_0' },
-        { phase: 2, duration: 25, name: 'Plancha Toques de Hombro (Shoulder Taps)', desc: 'Toques cruzados alternos en plancha.', muscles: 'Core, Deltoides', youtubeId: 'gWHQpMUd7vw' },
-        { phase: 3, duration: 25, name: 'Flexiones de Rodilla (Knee Push-Ups)', desc: 'Flexiones sencillas para bombear el pecho.', muscles: 'Pectorales, Tríceps', youtubeId: 'rrVwNeIpy-k' },
-        { phase: 4, duration: 25, name: 'Plancha con Patada Atrás (Elbow Plank Leg Raises)', desc: 'Elevaciones de piernas en plancha sobre codos.', muscles: 'Glúteos, Core, Hombros', youtubeId: 'Akf3IP0H9fA' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Inhala profundamente bajando el diafragma.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Rotaciones de Brazos',    desc: 'Círculos de brazos para preparar la articulación del hombro.',        muscles: 'Hombros',                        youtubeId: 'D40wm6vbI_0' },
+        { phase: 2, duration: 25, name: 'Toques de Hombro',        desc: 'Core activo tocando hombros alternamente en plancha alta.',           muscles: 'Core, Deltoides',                youtubeId: 'gWHQpMUd7vw' },
+        { phase: 3, duration: 25, name: 'Fondos de Tríceps',       desc: 'Fondos en silla focalizando en el tríceps.',                          muscles: 'Tríceps, Hombros',               youtubeId: '1mRpK_-d_H4' },
+        { phase: 4, duration: 25, name: 'Flexiones Diamante',      desc: 'Cierra las manos en rombo para máxima activación del tríceps.',       muscles: 'Tríceps, Pecho',                 youtubeId: '1Y8pTxdwf3M' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Inhala profundo y baja la temperatura corporal.',                     muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina I: Coordinación y Potencia',
+      routineName: 'Rutina I: Coordinación de Brazos',
       phases: [
-        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves', desc: 'Preparación y cardio ligero.', muscles: 'Full Body', youtubeId: 'gG2Z1siSvkk' },
-        { phase: 2, duration: 25, name: 'Plancha Commando (Plank Commandos)', desc: 'Baja y sube codos de manera rítmica.', muscles: 'Core, Hombros, Tríceps', youtubeId: 'yDfw9De-sNI' },
-        { phase: 3, duration: 25, name: 'Fondos de Tríceps (Chair Dips)', desc: 'Focaliza tríceps bajando en silla.', muscles: 'Tríceps, Hombros', youtubeId: '1mRpK_-d_H4' },
-        { phase: 4, duration: 25, name: 'Burpees Completos (Burpees)', desc: 'Burpee rápido e intenso.', muscles: 'Cardio, Pecho, Piernas', youtubeId: 'E-Oc0zjeqWo' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Ralentiza los latidos.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves',    desc: 'Calentamiento cardiovascular general.',                               muscles: 'Cardio, Full Body',              youtubeId: 'gG2Z1siSvkk' },
+        { phase: 2, duration: 25, name: 'Commandos',               desc: 'Sube y baja de plancha alta a plancha de codos de forma rítmica.',    muscles: 'Core, Tríceps, Hombros',         youtubeId: 'yDfw9De-sNI' },
+        { phase: 3, duration: 25, name: 'Flexiones de Pica',       desc: 'V invertida descendiendo la cabeza hacia el suelo.',                  muscles: 'Deltoides, Hombros',             youtubeId: '782MhTFvIBQ' },
+        { phase: 4, duration: 25, name: 'Burpees',                 desc: 'Burpee rápido e intenso para terminar la sesión.',                    muscles: 'Full Body, Pecho, Cardio',       youtubeId: 'E-Oc0zjeqWo' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Respira lento para ralentizar las pulsaciones.',                      muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina J: Resistencia Localizada de Brazos',
+      routineName: 'Rutina J: Resistencia de Brazos',
       phases: [
-        { phase: 1, duration: 10, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Dibuja círculos con los brazos.', muscles: 'Hombros', youtubeId: 'D40wm6vbI_0' },
-        { phase: 2, duration: 25, name: 'Flexiones de Rodilla (Knee Push-Ups)', desc: 'Flexiones con rodillas en el suelo a ritmo constante.', muscles: 'Pectorales, Tríceps', youtubeId: 'rrVwNeIpy-k' },
-        { phase: 3, duration: 25, name: 'Plancha Toques de Hombro (Shoulder Taps)', desc: 'Estabilidad escapular sin rotación.', muscles: 'Core, Deltoides', youtubeId: 'gWHQpMUd7vw' },
-        { phase: 4, duration: 25, name: 'Plancha Commando (Plank Commandos)', desc: 'Comandos de codo a plancha alta.', muscles: 'Hombros, Tríceps, Core', youtubeId: 'yDfw9De-sNI' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Relaja la musculatura e inspira lento.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Chest Expansions',        desc: 'Movilidad de pecho y escápulas como calentamiento.',                  muscles: 'Hombros, Pecho',                 youtubeId: 'El_Sj5hisSs' },
+        { phase: 2, duration: 25, name: 'Plancha en Codo con Elevación', desc: 'Sostén la plancha de codos elevando piernas de forma alterna.',  muscles: 'Core, Glúteos',                  youtubeId: 'Akf3IP0H9fA' },
+        { phase: 3, duration: 25, name: 'Elevación de Piernas en Plancha', desc: 'En plancha alta, eleva piernas alternamente sin rotar.',       muscles: 'Glúteos, Core, Hombros',         youtubeId: 'IexgiQZetb8' },
+        { phase: 4, duration: 25, name: 'Flexiones en Suelo',      desc: 'Flexiones completas en el suelo para terminar.',                      muscles: 'Pectorales, Tríceps',            youtubeId: 'v9LABVJzv8A' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Inhala por la nariz y exhala soltando toda la tensión.',              muscles: 'Recuperación',                   youtubeId: '' }
       ]
     }
   ],
+
+  // ─── TIRÓN ─────────────────────────────────────────────────────────────────
+  // 9 ejercicios únicos en A-B-C sin ninguna repetición entre rutinas.
+  // Rutina A: Isometría Posterior | Rutina B: Bisagra y Tracción | Rutina C: Tracción Dinámica
   tiron: [
     {
-      routineName: 'Rutina A: Cadena Posterior Básica',
+      routineName: 'Rutina A: Isometría Posterior',
       phases: [
-        { phase: 1, duration: 10, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Junta escápulas atrás al abrir los brazos para calentar la espalda.', muscles: 'Hombros, Espalda Alta', youtubeId: 'El_Sj5hisSs' },
-        { phase: 2, duration: 25, name: 'Superman Alternado (Alternative Arm/Leg Raises)', desc: 'Tumbado boca abajo, eleva alternativamente brazo y pierna contrarios.', muscles: 'Lumbar, Glúteos, Espalda Alta', youtubeId: 'DFk3yGZv62U' },
-        { phase: 3, duration: 25, name: 'Peso Muerto Rumano Unilateral (Single Leg Deadlift)', desc: 'Haz bisagra sobre un pie buscando el suelo con las manos y estirando la pierna contraria atrás.', muscles: 'Glúteos, Isquiotibiales, Core', youtubeId: 'X28U6NKcaWc' },
-        { phase: 4, duration: 25, name: 'Remo en Marco de Puerta (Door Frame Rows)', desc: 'Sujétate del marco de la puerta con una mano y tira del cuerpo con fuerza.', muscles: 'Dorsales, Bíceps, Escápulas', youtubeId: 'eCojBl6k_HE' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Inhala lento, abre el diafragma y relaja completamente los hombros y el cuello.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Chest Expansions',        desc: 'Abre los brazos hacia atrás juntando escápulas para calentar.',       muscles: 'Hombros, Espalda Alta',          youtubeId: 'El_Sj5hisSs' },
+        { phase: 2, duration: 25, name: 'Cobra en Prono',          desc: 'Boca abajo, eleva el torso contrayendo la espalda baja.',              muscles: 'Lumbar, Glúteos, Espalda Alta',  youtubeId: '2Z7uGBbsvf8', startTime: 187 },
+        { phase: 3, duration: 25, name: 'Superman Alternado',      desc: 'Boca abajo, eleva el brazo y pierna contrarios de forma alterna.',     muscles: 'Lumbar, Glúteos, Espalda Alta',  youtubeId: 'DFk3yGZv62U' },
+        { phase: 4, duration: 25, name: 'W Raise en Prono',        desc: 'Boca abajo, brazos en W, eleva y aprieta las escápulas fuerte.',       muscles: 'Trapecio Medio, Romboides',      youtubeId: 'q-qFjjKl1Ko' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Inhala expandiendo el pecho y exhala liberando la tensión.',           muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina B: Bisagra y Estabilidad',
+      routineName: 'Rutina B: Bisagra y Tracción',
       phases: [
-        { phase: 1, duration: 10, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Círculos controlados de brazos para calentar hombros y espalda alta.', muscles: 'Hombros, Trapecio', youtubeId: 'D40wm6vbI_0' },
-        { phase: 2, duration: 25, name: 'Peso Muerto Rumano Unilateral (Single Leg Deadlift)', desc: 'Bisagra de cadera controlando la estabilidad sobre un solo apoyo.', muscles: 'Glúteos, Isquiotibiales, Core', youtubeId: 'X28U6NKcaWc' },
-        { phase: 3, duration: 25, name: 'Superman Alternado (Alternative Arm/Leg Raises)', desc: 'Mantén la contracción lumbar arriba por un segundo al elevar las extremidades.', muscles: 'Lumbar, Glúteos, Espalda Alta', youtubeId: 'DFk3yGZv62U' },
-        { phase: 4, duration: 25, name: 'Remo en Marco de Puerta (Door Frame Rows)', desc: 'Tira de tu cuerpo controladamente, enfocando la contracción en el dorsal.', muscles: 'Dorsales, Bíceps, Escápulas', youtubeId: 'eCojBl6k_HE' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Inhala aire fresco pausadamente y suéltalo con suavidad, ralentizando el ritmo cardíaco.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Rotaciones de Brazos',    desc: 'Círculos de brazos para calentar hombros y espalda alta.',             muscles: 'Hombros, Trapecio',              youtubeId: 'D40wm6vbI_0' },
+        { phase: 2, duration: 25, name: 'Buenos Días',             desc: 'De pie, bisagra de cadera inclinando el torso hacia adelante.',        muscles: 'Isquiotibiales, Lumbar, Glúteos',youtubeId: 'DPcz2up4Yxc' },
+        { phase: 3, duration: 25, name: 'Peso Muerto Unilateral',  desc: 'Bisagra sobre un pie estirando la pierna libre hacia atrás.',          muscles: 'Glúteos, Isquiotibiales, Core',  youtubeId: 'X28U6NKcaWc' },
+        { phase: 4, duration: 25, name: 'Plancha Invertida',       desc: 'Siéntate, apoya manos detrás y eleva la cadera formando una tabla.',   muscles: 'Glúteos, Isquios, Espalda',      youtubeId: 'T_OPGz218B4' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Relaja la espalda y respira profundo para recuperar el pulso basal.',  muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina C: Tracción Activa',
+      routineName: 'Rutina C: Tracción Dinámica',
       phases: [
-        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves', desc: 'Salta abriendo brazos y piernas suavemente para calentar.', muscles: 'Full Body, Cardio', youtubeId: 'gG2Z1siSvkk' },
-        { phase: 2, duration: 25, name: 'Remo en Marco de Puerta (Door Frame Rows)', desc: 'Realiza el tirón de forma dinámica para involucrar el dorsal ancho.', muscles: 'Dorsales, Bíceps, Escápulas', youtubeId: 'eCojBl6k_HE' },
-        { phase: 3, duration: 25, name: 'Peso Muerto Rumano Unilateral (Single Leg Deadlift)', desc: 'Desciende despacio en bisagra buscando el suelo, controlando el equilibrio.', muscles: 'Glúteos, Isquiotibiales, Core', youtubeId: 'X28U6NKcaWc' },
-        { phase: 4, duration: 25, name: 'Remo Dinámico en Marco (Door Frame Rows)', desc: 'Remo rápido e intenso en el marco de la puerta para subir pulsaciones.', muscles: 'Dorsales, Bíceps, Cardio', youtubeId: 'eCojBl6k_HE' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Respira hondo y despacio. Recupera una respiración natural y tranquila.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves',    desc: 'Activación aeróbica general para entrar en calor.',                   muscles: 'Full Body, Cardio',              youtubeId: 'gG2Z1siSvkk' },
+        { phase: 2, duration: 25, name: 'Ángeles de Pared',        desc: 'Espalda en la pared, sube y baja los brazos manteniendo contacto.',    muscles: 'Deltoides, Trapecio, Romboides', youtubeId: '479HYhGmNfI', startTime: 34 },
+        { phase: 3, duration: 25, name: 'Remo en Marco de Puerta', desc: 'Sujétate del marco y tira del cuerpo activando el dorsal.',            muscles: 'Dorsales, Bíceps, Escápulas',    youtubeId: 'eCojBl6k_HE' },
+        { phase: 4, duration: 25, name: 'Donkey Kicks',            desc: 'En cuadrupedia, da patadas atrás y arriba apretando el glúteo.',       muscles: 'Glúteos, Lumbar, Core',          youtubeId: 'QGiiuBOQn3Y' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Respira hondo soltando la tensión de hombros y espalda.',              muscles: 'Recuperación',                   youtubeId: '' }
       ]
     }
   ],
+
+  // ─── POTENCIA ──────────────────────────────────────────────────────────────
+  // 9 ejercicios únicos en A-B-C sin ninguna repetición entre rutinas.
+  // Rutina A: Crescendo Aeróbico | Rutina B: Core Cardio | Rutina C: Explosivo Pliométrico
   potencia: [
     {
-      routineName: 'Rutina A: Acondicionamiento Plio',
+      routineName: 'Rutina A: Crescendo Aeróbico',
       phases: [
-        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves', desc: 'Abre brazos y piernas saltando a ritmo cómodo.', muscles: 'Full Body, Cardio', youtubeId: 'gG2Z1siSvkk' },
-        { phase: 2, duration: 25, name: 'Rodillas Arriba (High Knees)', desc: 'Lleva rodillas rápido al pecho de forma alterna.', muscles: 'Cardio, Flexores de cadera', youtubeId: 'DfjpR6dzLVg' },
-        { phase: 3, duration: 25, name: 'Sentadillas con Salto (Jump Squats)', desc: 'Sentadilla y salto vertical explosivo cayendo de forma amortiguada.', muscles: 'Cuádriceps, Glúteos, Pantorrillas', youtubeId: 'bv7as8mDXLQ' },
-        { phase: 4, duration: 25, name: 'Burpees Completos (Burpees)', desc: 'Haz burpees a ritmo constante sin parar para máxima fatiga aeróbica.', muscles: 'Full Body, Cardio, Core', youtubeId: 'E-Oc0zjeqWo' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Exhala de forma prolongada. Concéntrate en relajar los latidos de tu corazón.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Chest Expansions',        desc: 'Aperturas de pecho para calentar el tren superior.',                  muscles: 'Hombros, Escápulas',             youtubeId: 'El_Sj5hisSs' },
+        { phase: 2, duration: 25, name: 'Butt Kicks',              desc: 'Lleva los talones hacia los glúteos corriendo o trotando en el sitio.',muscles: 'Cardio, Isquiotibiales',         youtubeId: 'lVZi-AwxLPo' },
+        { phase: 3, duration: 25, name: 'Rodillas Arriba',         desc: 'Alterna levantando rodillas al pecho a máxima velocidad.',            muscles: 'Cardio, Flexores de Cadera',     youtubeId: 'DfjpR6dzLVg' },
+        { phase: 4, duration: 25, name: 'Burpees',                 desc: 'Baja al suelo haciendo flexión y salta vertical al subir.',           muscles: 'Full Body, Cardio, Core',        youtubeId: 'E-Oc0zjeqWo' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Exhala largo para bajar las pulsaciones después del pico.',           muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina B: Cardio Core y Potencia',
+      routineName: 'Rutina B: Core Cardio',
       phases: [
-        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves', desc: 'Calentamiento cardiovascular de articulaciones.', muscles: 'Full Body, Cardio', youtubeId: 'gG2Z1siSvkk' },
-        { phase: 2, duration: 25, name: 'Plancha Jacks (Plank Jacks)', desc: 'Posición de plancha alta, salta abriendo y cerrando las piernas.', muscles: 'Core, Hombros, Cardio', youtubeId: '3VpkyIcnT64' },
-        { phase: 3, duration: 25, name: 'Escaladores (Climbers)', desc: 'Posición de flexión, lleva rodillas de forma alterna hacia el pecho de manera muy rápida.', muscles: 'Core, Hombros, Flexores de cadera', youtubeId: 'w2iTOneGPdU' },
-        { phase: 4, duration: 25, name: 'Sentadillas con Salto (Jump Squats)', desc: 'Sentadillas dinámicas con salto explosivo vertical.', muscles: 'Cuádriceps, Glúteos, Pantorrillas', youtubeId: 'bv7as8mDXLQ' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Inhala en 4 segundos, retén el aire y exhala muy despacio por la boca.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Rotaciones de Brazos',    desc: 'Círculos de brazos como activación antes del core.',                  muscles: 'Hombros, Trapecio',              youtubeId: 'D40wm6vbI_0' },
+        { phase: 2, duration: 25, name: 'Plank Jacks',             desc: 'En plancha alta, salta abriendo y cerrando piernas como tijeras.',    muscles: 'Core, Hombros, Cardio',          youtubeId: '3VpkyIcnT64' },
+        { phase: 3, duration: 25, name: 'Escaladores',             desc: 'En plancha alta, lleva rodillas al pecho de forma alternada y rápida.',muscles: 'Core, Hombros, Flexores Cadera', youtubeId: 'w2iTOneGPdU' },
+        { phase: 4, duration: 25, name: 'Saltos de Patinador',     desc: 'Salta de lado a lado aterrizando sobre un pie como un patinador.',    muscles: 'Piernas, Glúteos, Cardio',       youtubeId: 'JQUqVHxbYEw' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Inhala 4 segundos y exhala 6 para calmar el sistema nervioso.',       muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina C: Cardio Isométrico Híbrido',
+      routineName: 'Rutina C: Explosivo Pliométrico',
       phases: [
-        { phase: 1, duration: 10, name: 'Jumping Jacks Suaves', desc: 'Preparación cardiovascular básica.', muscles: 'Full Body, Cardio', youtubeId: 'gG2Z1siSvkk' },
-        { phase: 2, duration: 25, name: 'Sentadillas Isométricas (Squat Hold)', desc: 'Mantén la posición abajo libre.', muscles: 'Cuádriceps, Glúteos, Cardio, Deltoides', youtubeId: 'OpiE9QGKfuo' },
-        { phase: 3, duration: 25, name: 'Burpees Completos (Burpees)', desc: 'Burpees estrictos con salto explosivo vertical.', muscles: 'Full Body, Cardio, Core', youtubeId: 'E-Oc0zjeqWo' },
-        { phase: 4, duration: 25, name: 'Zancadas Cruzadas Dinámicas (Split Jacks)', desc: 'Tijeras de pies con salto dinámico y continuo.', muscles: 'Piernas, Glúteos, Cardio', youtubeId: '83cVgok6KrI' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Realiza respiraciones pausadas diafragmáticas para relajar el sistema nervioso.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Half Jacks',              desc: 'Versión suave de jumping jacks para entrar en calor gradualmente.',   muscles: 'Full Body, Cardio',              youtubeId: 'F16nHvGbsiw' },
+        { phase: 2, duration: 25, name: 'Jumping Jacks',           desc: 'Salta abriendo y cerrando piernas y brazos a ritmo sostenido.',       muscles: 'Full Body, Cardio',              youtubeId: 'gG2Z1siSvkk' },
+        { phase: 3, duration: 25, name: 'Sentadillas con Salto',   desc: 'Sentadilla y despegue vertical explosivo.',                           muscles: 'Cuádriceps, Glúteos, Potencia',  youtubeId: 'bv7as8mDXLQ' },
+        { phase: 4, duration: 25, name: 'Zancadas Cruzadas',       desc: 'Tijeras de pies saltando con máxima amplitud y velocidad.',           muscles: 'Piernas, Glúteos, Cardio',       youtubeId: '83cVgok6KrI' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Respira lento y profundo para recuperar el pulso basal.',             muscles: 'Recuperación',                   youtubeId: '' }
       ]
     }
   ],
+
+  // ─── MOVILIDAD ─────────────────────────────────────────────────────────────
+  // 9 ejercicios únicos en A-B-C sin ninguna repetición entre rutinas.
+  // Rutina A: Postura y Apertura | Rutina B: Cadera y Cadena Posterior | Rutina C: Relajación Profunda
   movilidad: [
     {
-      routineName: 'Rutina A: Apertura y Postura',
+      routineName: 'Rutina A: Postura y Apertura',
       phases: [
-        { phase: 1, duration: 10, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Círculos escapulares y aperturas de pecho.', muscles: 'Hombros, Espalda Alta', youtubeId: 'El_Sj5hisSs' },
-        { phase: 2, duration: 25, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Brazos abiertos horizontales, dibuja círculos lentos hacia adelante.', muscles: 'Deltoides, Trapecio', youtubeId: 'D40wm6vbI_0' },
-        { phase: 3, duration: 25, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Aperturas horizontales estirando bien el pectoral.', muscles: 'Pectorales, Hombros', youtubeId: 'El_Sj5hisSs' },
-        { phase: 4, duration: 25, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Dibuja círculos lentos hacia atrás controlando la respiración.', muscles: 'Deltoides, Trapecio', youtubeId: 'D40wm6vbI_0' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Cierra los ojos. Respira hondo y lento para recuperar el pulso basal.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Rotaciones de Brazos',    desc: 'Círculos de brazos lentos y amplios para movilizar el hombro.',        muscles: 'Hombros, Trapecio',              youtubeId: 'D40wm6vbI_0' },
+        { phase: 2, duration: 25, name: 'Chest Expansions',        desc: 'Abre los brazos hacia atrás juntando escápulas y suelta lentamente.', muscles: 'Pectorales, Deltoides, Omóplatos',youtubeId: 'El_Sj5hisSs' },
+        { phase: 3, duration: 25, name: 'Inclinaciones Laterales', desc: 'Inclina el tronco de lado a lado estirando los flancos despacio.',     muscles: 'Oblicuos, Cuadrado Lumbar',      youtubeId: 'uWLFCRHU0Og' },
+        { phase: 4, duration: 25, name: 'Giro de Torso',           desc: 'De pie, rota el tronco de lado a lado con los brazos libres.',        muscles: 'Oblicuos, Columna, Cadera',      youtubeId: 'f4Qah0bQTIo' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Cierra los ojos y respira expandiendo el abdomen lentamente.',        muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina B: Flexibilidad y Postura Espalda',
+      routineName: 'Rutina B: Cadera y Cadena Posterior',
       phases: [
-        { phase: 1, duration: 10, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Calentamiento articular del hombro.', muscles: 'Hombros, Trapecio', youtubeId: 'D40wm6vbI_0' },
-        { phase: 2, duration: 25, name: 'Superman Alternado (Alternative Arm/Leg Raises)', desc: 'Elevaciones cruzadas lentas sintiendo la elasticidad de tu cadena posterior.', muscles: 'Lumbar, Isquiotibiales', youtubeId: 'DFk3yGZv62U' },
-        { phase: 3, duration: 25, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Abre el pecho y junta los omóplatos controladamente.', muscles: 'Dorsales, Omóplatos', youtubeId: 'El_Sj5hisSs' },
-        { phase: 4, duration: 25, name: 'Superman Alternado (Alternative Arm/Leg Raises)', desc: 'Eleva el brazo y pierna contraria de forma pausada en el suelo.', muscles: 'Lumbar, Isquiotibiales', youtubeId: 'DFk3yGZv62U' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Inhala aire profundamente y exhala de forma muy controlada y larga.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Rotaciones de Cuello',    desc: 'Gira el cuello lentamente de lado a lado para liberar la tensión cervical.',muscles: 'Cervicales, Trapecio',        youtubeId: 'JpaYwJLzElM' },
+        { phase: 2, duration: 25, name: 'Círculos de Cadera',      desc: 'De pie, dibuja círculos amplios con la cadera en ambas direcciones.',  muscles: 'Cadera, Lumbar, Iliopsoas',      youtubeId: 'yFi1FDOFXq0', startTime: 20 },
+        { phase: 3, duration: 25, name: 'Balanceo de Piernas',     desc: 'Apoya la mano en la pared y balancea cada pierna adelante y atrás.',   muscles: 'Cadera, Flexores, Isquiotibiales',youtubeId: 'difYoBtZi2s' },
+        { phase: 4, duration: 25, name: 'Superman Alternado',      desc: 'Boca abajo, eleva lentamente el brazo y pierna contrarios.',           muscles: 'Lumbar, Glúteos, Espalda Alta',  youtubeId: 'DFk3yGZv62U' },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Inhala largo y exhala soltando la tensión de cadera y espalda.',       muscles: 'Recuperación',                   youtubeId: '' }
       ]
     },
     {
-      routineName: 'Rutina C: Cardio Movilidad Híbrida',
+      routineName: 'Rutina C: Relajación Profunda',
       phases: [
-        { phase: 1, duration: 10, name: 'Movilidad de Hombros (Chest Expansions)', desc: 'Rotación y estiramiento activo de hombros.', muscles: 'Hombros, Escápulas', youtubeId: 'El_Sj5hisSs' },
-        { phase: 2, duration: 25, name: 'Elevación de Talones (Calf Raises)', desc: 'Eleva talones controladamente, estirando bien el talón al bajar.', muscles: 'Pantorrillas, Tobillos', youtubeId: 'UV8gOrHmuKc' },
-        { phase: 3, duration: 25, name: 'Rotaciones de Brazos (Raised Arms Circles)', desc: 'Brazos en cruz horizontales, círculos amplios y lentos.', muscles: 'Hombros, Brazos', youtubeId: 'D40wm6vbI_0' },
-        { phase: 4, duration: 25, name: 'Elevación de Talones (Calf Raises)', desc: 'Baja despacio y mantén un segundo arriba apretando gemelos.', muscles: 'Pantorrillas, Tobillos', youtubeId: 'UV8gOrHmuKc' },
-        { phase: 5, duration: 35, name: 'Respiración Profunda (Cooldown)', desc: 'Inspira profundamente llenando el diafragma y exhala todo el aire relajando el cuerpo.', muscles: 'Recuperación, Calma', youtubeId: '' }
+        { phase: 1, duration: 10, name: 'Elevación de Talones',    desc: 'Sube y baja lentamente sobre las puntas activando las pantorrillas.', muscles: 'Pantorrillas, Tobillos',         youtubeId: 'UV8gOrHmuKc' },
+        { phase: 2, duration: 25, name: 'Elevación Lateral de Pierna', desc: 'Tumbado de lado, eleva y baja la pierna de forma controlada.',    muscles: 'Glúteo Medio, Abductores',       youtubeId: 'H8RrfDOLiZU' },
+        { phase: 3, duration: 25, name: 'Ángeles de Pared',        desc: 'Espalda pegada a la pared, sube los brazos sin despegar los codos.',  muscles: 'Deltoides, Trapecio, Romboides', youtubeId: '479HYhGmNfI', startTime: 34 },
+        { phase: 4, duration: 25, name: 'Postura del Niño',        desc: 'Arrodíllate y estira los brazos al frente descansando el torso.',     muscles: 'Lumbar, Cadera, Hombros',        youtubeId: 'eqVMAPM00DM', startTime: 185 },
+        { phase: 5, duration: 35, name: 'Respiración Profunda',    desc: 'Mantén la postura del niño respirando hondo para relajar la espalda.',muscles: 'Recuperación',                   youtubeId: '' }
       ]
     }
   ]

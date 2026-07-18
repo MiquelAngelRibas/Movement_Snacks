@@ -902,7 +902,7 @@ export default function App() {
                           <iframe
                             width="100%"
                             height="100%"
-                            src={`https://www.youtube-nocookie.com/embed/${phase.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${phase.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1`}
+                            src={`https://www.youtube-nocookie.com/embed/${phase.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${phase.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${phase.startTime ? `&start=${phase.startTime}` : ''}`}
                             title={`Previo ${idx + 1}`}
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -983,7 +983,7 @@ export default function App() {
                         key={activePhases[currentPhaseIndex]?.youtubeId}
                         width="100%"
                         height="100%"
-                        src={`https://www.youtube-nocookie.com/embed/${activePhases[currentPhaseIndex]?.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${activePhases[currentPhaseIndex]?.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1`}
+                        src={`https://www.youtube-nocookie.com/embed/${activePhases[currentPhaseIndex]?.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${activePhases[currentPhaseIndex]?.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${activePhases[currentPhaseIndex]?.startTime ? `&start=${activePhases[currentPhaseIndex].startTime}` : ''}`}
                         title="Guía del Ejercicio"
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -1246,7 +1246,7 @@ export default function App() {
                             <iframe
                               width="100%"
                               height="100%"
-                              src={`https://www.youtube-nocookie.com/embed/${ex.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${ex.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1`}
+                              src={`https://www.youtube-nocookie.com/embed/${ex.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${ex.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${ex.startTime ? `&start=${ex.startTime}` : ''}`}
                               title={ex.name}
                               frameBorder="0"
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
