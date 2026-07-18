@@ -892,16 +892,23 @@ export default function App() {
                     <div key={idx} className="filmstrip-card">
                       <span className="filmstrip-card-title">Fase {idx + 1}</span>
                       
-                      <div className="filmstrip-video-container">
-                        <iframe
-                          width="100%"
-                          height="100%"
-                          src={`https://www.youtube-nocookie.com/embed/${phase.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${phase.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1`}
-                          title={`Previo ${idx + 1}`}
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          style={{ borderRadius: '8px', width: '100%', height: '100%', pointerEvents: 'none' }}
-                        />
+                      <div className="filmstrip-video-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '8px', overflow: 'hidden' }}>
+                        {!phase.youtubeId ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '2.5rem' }}>🌬️</span>
+                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Respiración</span>
+                          </div>
+                        ) : (
+                          <iframe
+                            width="100%"
+                            height="100%"
+                            src={`https://www.youtube-nocookie.com/embed/${phase.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${phase.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1`}
+                            title={`Previo ${idx + 1}`}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            style={{ borderRadius: '8px', width: '100%', height: '100%', pointerEvents: 'none' }}
+                          />
+                        )}
                       </div>
 
                       <span className="filmstrip-card-desc">{phase.name}</span>
