@@ -444,7 +444,8 @@ export default function App() {
     if (notificationsGranted && 'Notification' in window) {
       const notification = new Notification(title, {
         body,
-        icon: '/favicon.ico'
+        icon: '/favicon.ico',
+        requireInteraction: true
       });
       // Traer la ventana de la app al frente al hacer clic
       notification.onclick = () => {
