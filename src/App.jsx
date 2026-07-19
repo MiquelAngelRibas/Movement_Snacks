@@ -125,6 +125,7 @@ export default function App() {
   // --- Estado de Permisos ---
   const [notificationsGranted, setNotificationsGranted] = useState(false);
   const [inTeams, setInTeams] = useState(false);
+  const [dismissedNotificationBanner, setDismissedNotificationBanner] = useState(false);
 
   // --- Referencias ---
   const countdownTimerRef = useRef(null);
@@ -232,9 +233,33 @@ export default function App() {
             const parsed = JSON.parse(cachedUser);
             setCurrentUser(parsed);
             restoreDailyState(parsed);
-          } else {
-            setGameState('onboarding');
+            setLoading(false);
+            return;
           }
+        }
+
+        // Si no hay usuario recordado, cargamos la lista para la pantalla de selección
+        let hasUsers = false;
+        if (supabase) {
+          try {
+            const { data } = await supabase.from('users').select('*');
+            if (data && data.length > 0) {
+              setUsersList(data);
+              hasUsers = true;
+            }
+          } catch (e) {
+            console.error('Error al cargar lista inicial de usuarios:', e);
+          }
+        } else {
+          const localUsers = JSON.parse(localStorage.getItem('movement_snacks_users_local') || '[]');
+          if (localUsers.length > 0) {
+            setUsersList(localUsers);
+            hasUsers = true;
+          }
+        }
+
+        if (hasUsers) {
+          setGameState('user_selection');
         } else {
           setGameState('onboarding');
         }
@@ -273,7 +298,7 @@ export default function App() {
 
   // --- Carga de Marcador y Feed ---
   useEffect(() => {
-    if (gameState === 'onboarding' || !currentUser) return;
+    if (gameState === 'onboarding' || gameState === 'user_selection' || !currentUser) return;
 
     const fetchLeaderboard = async () => {
       if (!supabase) {
@@ -550,39 +575,70 @@ export default function App() {
       try {
         const { data, error } = await supabase.from('users').upsert(dbPayload).select().single();
         if (error) throw error;
-        setCurrentUser({ ...data, lunch_start: lunchStart, lunch_end: lunchEnd });
+        const updatedUser = { ...data, lunch_start: lunchStart, lunch_end: lunchEnd };
+        setCurrentUser(updatedUser);
+        
+        // Actualizar lista de usuarios en memoria
+        setUsersList(prev => {
+          const exists = prev.some(u => u.id === id);
+          if (exists) {
+            return prev.map(u => u.id === id ? updatedUser : u);
+          }
+          return [...prev, updatedUser];
+        });
       } catch (err) {
         console.error('Error al guardar perfil en Supabase, usando local:', err);
         setCurrentUser(userPayload);
       }
     } else {
       setCurrentUser(userPayload);
+      // Guardar en la lista local de usuarios
+      const localUsers = JSON.parse(localStorage.getItem('movement_snacks_users_local') || '[]');
+      const existsIdx = localUsers.findIndex(u => u.id === id);
+      if (existsIdx !== -1) {
+        localUsers[existsIdx] = userPayload;
+      } else {
+        localUsers.push(userPayload);
+      }
+      localStorage.setItem('movement_snacks_users_local', JSON.stringify(localUsers));
+      setUsersList(localUsers);
     }
-    setGameState('waiting_start');
-  };
-
-  // Iniciar Jornada ("¡Ya estoy aquí!")
-  const handleStartDay = () => {
-    playAudioTone(880, 0.2);
-    setSnoozeCount(0);
-    const minutes = currentUser?.reminder_interval || 45;
-    const targetTime = new Date(Date.now() + minutes * 60 * 1000);
     
-    // Decidir la categoría inicial de forma circadiana
-    const now = new Date();
-    const currentHour = now.getHours();
-    let initialCategory;
-    if (currentHour >= 15) {
-      initialCategory = 'movilidad';
-    } else {
-      const morningCats = ['pierna', 'empuje', 'tiron'];
-      initialCategory = morningCats[Math.floor(Math.random() * morningCats.length)];
-    }
-    setActiveCategory(initialCategory);
-
-    setNextSnackTime(targetTime);
-    setSecondsToNextSnack(minutes * 60);
-    setGameState('idle_countdown');
+    // Al guardar o registrar, reanudamos el estado de recordatorio diario del usuario
+    const restoreDailyState = (user) => {
+      const todayStr = new Date().toLocaleDateString('sv-SE');
+      const cachedState = localStorage.getItem('movement_snacks_daily_state');
+      if (cachedState) {
+        try {
+          const parsed = JSON.parse(cachedState);
+          if (parsed.date === todayStr && parsed.gameState) {
+            if (parsed.gameState === 'active_timer' || parsed.gameState === 'preview_card') {
+              const minutes = user?.reminder_interval || 45;
+              const targetTime = new Date(Date.now() + minutes * 60 * 1000);
+              setGameState('idle_countdown');
+              setNextSnackTime(targetTime);
+              setSecondsToNextSnack(minutes * 60);
+            } else {
+              setGameState(parsed.gameState);
+              if (parsed.nextSnackTime) {
+                const nextTime = new Date(parsed.nextSnackTime);
+                setNextSnackTime(nextTime);
+                const remainingSecs = Math.max(0, Math.floor((nextTime.getTime() - Date.now()) / 1000));
+                setSecondsToNextSnack(remainingSecs);
+              }
+            }
+            if (parsed.activeCategory) {
+              setActiveCategory(parsed.activeCategory);
+            }
+            return;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      setGameState('waiting_start');
+    };
+    restoreDailyState(userPayload);
   };
 
   // Alerta de Snack Activada (Se cumplió el tiempo)
@@ -873,6 +929,67 @@ export default function App() {
     );
   }
 
+  // PANTALLA 0: SELECCIÓN DE USUARIO
+  if (gameState === 'user_selection') {
+    return (
+      <div className="app-container" style={{ maxWidth: '600px', margin: '40px auto' }}>
+        <header style={{ justifyContent: 'center', marginBottom: '24px' }}>
+          <h1>Snacks de Movimiento</h1>
+        </header>
+        
+        <div className="db-card" style={{ padding: '40px 32px' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px', textAlign: 'center' }}>
+            ¿Quién entrena hoy? 💻
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', fontSize: '0.9rem', textAlign: 'center', lineHeight: '1.4' }}>
+            Selecciona tu usuario para reanudar tu jornada de snacks o crea un nuevo perfil.
+          </p>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '20px', marginBottom: '16px' }}>
+            {usersList.map((user) => (
+              <div 
+                key={user.id} 
+                className="user-select-card"
+                onClick={() => handleSelectUser(user)}
+                style={{ position: 'relative' }}
+              >
+                <div className={`monogram ${user.avatar_url || 'm-grad-1'}`} style={{ width: '60px', height: '60px', fontSize: '1.8rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, margin: '0 auto 12px auto', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }}>
+                  {getMonogram(user.username)}
+                </div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
+                  {user.username}
+                </div>
+                <button 
+                  className="delete-user-btn"
+                  onClick={(e) => handleDeleteUser(user.id, user.username, e)}
+                  title="Eliminar usuario"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            
+            {/* Tarjeta de Crear Nuevo */}
+            <div 
+              className="user-select-card new-user"
+              onClick={() => {
+                setCurrentUser(null);
+                setGameState('onboarding');
+              }}
+            >
+              <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'var(--bg-secondary)', border: '2px dashed var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', color: 'var(--text-secondary)', margin: '0 auto 12px auto' }}>
+                +
+              </div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                Crear Perfil
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // PANTALLA 1: ONBOARDING (REGISTRO)
   if (gameState === 'onboarding') {
     return (
@@ -974,12 +1091,21 @@ export default function App() {
   return (
     <div className={`app-container ${isWorkoutMode ? 'workout-focus' : ''}`}>
       {/* Banner de Notificación */}
-      {!notificationsGranted && !inTeams && (
+      {!notificationsGranted && !inTeams && !dismissedNotificationBanner && (
         <div className="notification-banner">
           <span>Habilita las notificaciones flotantes para recibir alertas de escritorio con auto-enfoque.</span>
-          <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem' }} onClick={requestNotificationPermission}>
-            Activar
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem' }} onClick={requestNotificationPermission}>
+              Activar
+            </button>
+            <button 
+              style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1rem', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+              onClick={() => setDismissedNotificationBanner(true)}
+              title="Cerrar aviso"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 
@@ -1000,6 +1126,9 @@ export default function App() {
           )}
           <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem', borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={() => setShowCatalog(true)}>
             Ver Ejercicios 🎥
+          </button>
+          <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem' }} onClick={handleLogOutUser}>
+            Cambiar Usuario 👤
           </button>
           <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem' }} onClick={handleEditProfile}>
             Ajustes de Perfil

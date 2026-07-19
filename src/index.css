@@ -1038,3 +1038,64 @@ header h1 {
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* Pantalla de Selección de Usuario */
+.user-select-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.user-select-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+.user-select-card.new-user {
+  border: 2px dashed var(--border-color);
+  background: transparent;
+  justify-content: center;
+}
+
+.user-select-card.new-user:hover {
+  border-color: var(--accent);
+  background: var(--bg-card);
+}
+
+.delete-user-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: none;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out, background-color 0.1s ease-in-out;
+}
+
+.user-select-card:hover .delete-user-btn {
+  opacity: 1;
+}
+
+.delete-user-btn:hover {
+  background: #ef4444;
+  color: #fff;
+}
