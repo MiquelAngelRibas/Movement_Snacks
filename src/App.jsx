@@ -513,7 +513,12 @@ export default function App() {
     if ('Notification' in window) {
       Notification.requestPermission().then((permission) => {
         setNotificationsGranted(permission === 'granted');
+        if (permission === 'denied') {
+          alert('⚠️ Notificaciones Bloqueadas en este ordenador\n\nAl parecer las notificaciones están desactivadas o bloqueadas para este sitio en tu navegador.\n\nPara activarlas y recibir alertas:\n1. Haz clic en el icono del candado (o configuración) a la izquierda de la dirección URL en la parte superior del navegador.\n2. Busca el selector de "Notificaciones" y cámbialo a "Permitir".\n3. Recarga la página.');
+        }
       });
+    } else {
+      alert('Las notificaciones de escritorio no están soportadas en este navegador.');
     }
   };
 
