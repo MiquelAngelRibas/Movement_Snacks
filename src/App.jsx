@@ -198,18 +198,18 @@ export default function App() {
               if (data) {
                 const mergedUser = { ...data };
                 const savedLunch = localStorage.getItem(`lunch_settings_${data.id}`);
+                let localStart = '14:00';
+                let localEnd = '16:00';
                 if (savedLunch) {
                   try {
                     const { start, end } = JSON.parse(savedLunch);
-                    mergedUser.lunch_start = start;
-                    mergedUser.lunch_end = end;
-                  } catch (e) {
-                    console.error(e);
-                  }
-                } else {
-                  mergedUser.lunch_start = '14:00';
-                  mergedUser.lunch_end = '16:00';
+                    localStart = start;
+                    localEnd = end;
+                  } catch (e) {}
                 }
+                mergedUser.lunch_start = data.lunch_start || localStart;
+                mergedUser.lunch_end = data.lunch_end || localEnd;
+                localStorage.setItem(`lunch_settings_${data.id}`, JSON.stringify({ start: mergedUser.lunch_start, end: mergedUser.lunch_end }));
                 setCurrentUser(mergedUser);
                 restoreDailyState(mergedUser);
                 setLoading(false);
@@ -236,18 +236,18 @@ export default function App() {
             if (data) {
               const mergedUser = { ...data };
               const savedLunch = localStorage.getItem(`lunch_settings_${data.id}`);
+              let localStart = '14:00';
+              let localEnd = '16:00';
               if (savedLunch) {
                 try {
                   const { start, end } = JSON.parse(savedLunch);
-                  mergedUser.lunch_start = start;
-                  mergedUser.lunch_end = end;
-                } catch (e) {
-                  console.error(e);
-                }
-              } else {
-                mergedUser.lunch_start = '14:00';
-                mergedUser.lunch_end = '16:00';
+                  localStart = start;
+                  localEnd = end;
+                } catch (e) {}
               }
+              mergedUser.lunch_start = data.lunch_start || localStart;
+              mergedUser.lunch_end = data.lunch_end || localEnd;
+              localStorage.setItem(`lunch_settings_${data.id}`, JSON.stringify({ start: mergedUser.lunch_start, end: mergedUser.lunch_end }));
               setCurrentUser(mergedUser);
               restoreDailyState(mergedUser);
               setLoading(false);
@@ -604,7 +604,9 @@ export default function App() {
       username,
       avatar_url: avatar,
       reminder_interval: interval,
-      has_equipment: equipment
+      has_equipment: equipment,
+      lunch_start: lunchStart,
+      lunch_end: lunchEnd
     };
 
     // Guardado local inmediato
