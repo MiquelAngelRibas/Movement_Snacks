@@ -196,8 +196,22 @@ export default function App() {
             if (supabase) {
               const { data, error } = await supabase.from('users').select('*').eq('id', teamsId).maybeSingle();
               if (data) {
-                setCurrentUser(data);
-                restoreDailyState(data);
+                const mergedUser = { ...data };
+                const savedLunch = localStorage.getItem(`lunch_settings_${data.id}`);
+                if (savedLunch) {
+                  try {
+                    const { start, end } = JSON.parse(savedLunch);
+                    mergedUser.lunch_start = start;
+                    mergedUser.lunch_end = end;
+                  } catch (e) {
+                    console.error(e);
+                  }
+                } else {
+                  mergedUser.lunch_start = '14:00';
+                  mergedUser.lunch_end = '16:00';
+                }
+                setCurrentUser(mergedUser);
+                restoreDailyState(mergedUser);
                 setLoading(false);
                 return;
               }
@@ -220,8 +234,22 @@ export default function App() {
           if (supabase) {
             const { data, error } = await supabase.from('users').select('*').eq('id', localUserId).maybeSingle();
             if (data) {
-              setCurrentUser(data);
-              restoreDailyState(data);
+              const mergedUser = { ...data };
+              const savedLunch = localStorage.getItem(`lunch_settings_${data.id}`);
+              if (savedLunch) {
+                try {
+                  const { start, end } = JSON.parse(savedLunch);
+                  mergedUser.lunch_start = start;
+                  mergedUser.lunch_end = end;
+                } catch (e) {
+                  console.error(e);
+                }
+              } else {
+                mergedUser.lunch_start = '14:00';
+                mergedUser.lunch_end = '16:00';
+              }
+              setCurrentUser(mergedUser);
+              restoreDailyState(mergedUser);
               setLoading(false);
               return;
             }
@@ -582,6 +610,7 @@ export default function App() {
     // Guardado local inmediato
     localStorage.setItem('movement_snacks_user_id', id);
     localStorage.setItem('movement_snacks_profile', JSON.stringify(userPayload));
+    localStorage.setItem(`lunch_settings_${id}`, JSON.stringify({ start: lunchStart, end: lunchEnd }));
 
     if (supabase) {
       try {
@@ -918,11 +947,25 @@ export default function App() {
     setGameState('waiting_start');
   };
 
-  // Seleccionar usuario de la lista
   const handleSelectUser = (user) => {
-    setCurrentUser(user);
-    localStorage.setItem('movement_snacks_user_id', user.id);
-    localStorage.setItem('movement_snacks_profile', JSON.stringify(user));
+    let mergedUser = { ...user };
+    const savedLunch = localStorage.getItem(`lunch_settings_${user.id}`);
+    if (savedLunch) {
+      try {
+        const { start, end } = JSON.parse(savedLunch);
+        mergedUser.lunch_start = start;
+        mergedUser.lunch_end = end;
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      mergedUser.lunch_start = '14:00';
+      mergedUser.lunch_end = '16:00';
+    }
+    
+    setCurrentUser(mergedUser);
+    localStorage.setItem('movement_snacks_user_id', mergedUser.id);
+    localStorage.setItem('movement_snacks_profile', JSON.stringify(mergedUser));
     
     // Restaurar su estado del recordatorio diario
     const todayStr = new Date().toLocaleDateString('sv-SE');
