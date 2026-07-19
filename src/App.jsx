@@ -244,16 +244,18 @@ export default function App() {
           try {
             const { data } = await supabase.from('users').select('*');
             if (data && data.length > 0) {
-              setUsersList(data);
-              hasUsers = true;
+              const activeUsers = data.filter(u => !u.username.startsWith('__deleted__'));
+              setUsersList(activeUsers);
+              hasUsers = activeUsers.length > 0;
             }
           } catch (e) {
             console.error('Error al cargar lista inicial de usuarios:', e);
           }
         } else {
           const localUsers = JSON.parse(localStorage.getItem('movement_snacks_users_local') || '[]');
-          if (localUsers.length > 0) {
-            setUsersList(localUsers);
+          const activeLocalUsers = localUsers.filter(u => !u.username.startsWith('__deleted__'));
+          if (activeLocalUsers.length > 0) {
+            setUsersList(activeLocalUsers);
             hasUsers = true;
           }
         }
@@ -369,14 +371,17 @@ export default function App() {
       }
 
       try {
-        // Obtener usuarios
+        // Obtener usuarios filtrando eliminados
         const { data: usersData } = await supabase.from('users').select('*');
+        const activeUsersData = (usersData || []).filter(u => !u.username.startsWith('__deleted__'));
         
-        // Obtener TODOS los logs completados para calcular el histórico y el de hoy
+        // Obtener logs completados a partir de la fecha de inicio del proyecto (lunes 20 de julio de 2026)
+        const projectStart = new Date('2026-07-20T00:00:00Z');
         const { data: allLogsData } = await supabase
           .from('snacks_log')
           .select('user_id, points_earned, status, created_at')
-          .eq('status', 'completed');
+          .eq('status', 'completed')
+          .gte('created_at', projectStart.toISOString());
 
         // Filtrar para el marcador de hoy
         const todayStr = new Date().toLocaleDateString('sv-SE');
@@ -388,7 +393,7 @@ export default function App() {
           }
         });
 
-        const sortedUsers = (usersData || []).map((u) => ({
+        const sortedUsers = activeUsersData.map((u) => ({
           ...u,
           points: pointsMap[u.id] || 0
         })).sort((a, b) => b.points - a.points);
@@ -396,7 +401,7 @@ export default function App() {
         setUsersList(sortedUsers);
 
         // Calcular mapa de ganadores diarios para el calendario
-        const winners = calculateWinnersMap(allLogsData || [], usersData || []);
+        const winners = calculateWinnersMap(allLogsData || [], activeUsersData);
         setDailyWinners(winners);
       } catch (err) {
         console.error('Error al cargar marcador/historial de Supabase:', err);
@@ -417,9 +422,11 @@ export default function App() {
       }
 
       try {
+        const projectStart = new Date('2026-07-20T00:00:00Z');
         const { data: logsData } = await supabase
           .from('snacks_log')
           .select('*, users(username, avatar_url)')
+          .gte('created_at', projectStart.toISOString())
           .order('created_at', { ascending: false })
           .limit(10);
 
@@ -997,13 +1004,17 @@ export default function App() {
       if (supabase) {
         try {
           const { data } = await supabase.from('users').select('*');
-          if (data) setUsersList(data);
+          if (data) {
+            const activeUsers = data.filter(u => !u.username.startsWith('__deleted__'));
+            setUsersList(activeUsers);
+          }
         } catch (e) {
           console.error(e);
         }
       } else {
         const localUsers = JSON.parse(localStorage.getItem('movement_snacks_users_local') || '[]');
-        setUsersList(localUsers);
+        const activeLocalUsers = localUsers.filter(u => !u.username.startsWith('__deleted__'));
+        setUsersList(activeLocalUsers);
       }
     };
     fetchUsers();
@@ -1087,13 +1098,6 @@ export default function App() {
                 <div style={{ fontWeight: 700, fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
                   {user.username}
                 </div>
-                <button 
-                  className="delete-user-btn"
-                  onClick={(e) => handleDeleteUser(user.id, user.username, e)}
-                  title="Eliminar usuario"
-                >
-                  ✕
-                </button>
               </div>
             ))}
             
