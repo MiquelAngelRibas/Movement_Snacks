@@ -906,6 +906,105 @@ export default function App() {
     setGameState('waiting_start');
   };
 
+  // Seleccionar usuario de la lista
+  const handleSelectUser = (user) => {
+    setCurrentUser(user);
+    localStorage.setItem('movement_snacks_user_id', user.id);
+    localStorage.setItem('movement_snacks_profile', JSON.stringify(user));
+    
+    // Restaurar su estado del recordatorio diario
+    const todayStr = new Date().toLocaleDateString('sv-SE');
+    const cachedState = localStorage.getItem('movement_snacks_daily_state');
+    if (cachedState) {
+      try {
+        const parsed = JSON.parse(cachedState);
+        if (parsed.date === todayStr && parsed.gameState) {
+          if (parsed.gameState === 'active_timer' || parsed.gameState === 'preview_card') {
+            const minutes = user?.reminder_interval || 45;
+            const targetTime = new Date(Date.now() + minutes * 60 * 1000);
+            setGameState('idle_countdown');
+            setNextSnackTime(targetTime);
+            setSecondsToNextSnack(minutes * 60);
+          } else {
+            setGameState(parsed.gameState);
+            if (parsed.nextSnackTime) {
+              const nextTime = new Date(parsed.nextSnackTime);
+              setNextSnackTime(nextTime);
+              const remainingSecs = Math.max(0, Math.floor((nextTime.getTime() - Date.now()) / 1000));
+              setSecondsToNextSnack(remainingSecs);
+            }
+          }
+          if (parsed.activeCategory) {
+            setActiveCategory(parsed.activeCategory);
+          }
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setGameState('waiting_start');
+  };
+
+  // Eliminar usuario
+  const handleDeleteUser = async (userId, username, e) => {
+    e.stopPropagation(); // Evitar click en la tarjeta de selección
+    if (!window.confirm(`¿Seguro que deseas eliminar el usuario "${username}"? Esto borrará de forma permanente todos sus datos de entrenamiento y registros.`)) {
+      return;
+    }
+
+    if (supabase) {
+      try {
+        await supabase.from('users').delete().eq('id', userId);
+        setUsersList(prev => prev.filter(u => u.id !== userId));
+        if (currentUser?.id === userId) {
+          setCurrentUser(null);
+          localStorage.removeItem('movement_snacks_user_id');
+          localStorage.removeItem('movement_snacks_profile');
+          setGameState('user_selection');
+        }
+      } catch (err) {
+        console.error('Error al eliminar usuario de Supabase:', err);
+      }
+    } else {
+      const localUsers = JSON.parse(localStorage.getItem('movement_snacks_users_local') || '[]');
+      const filtered = localUsers.filter(u => u.id !== userId);
+      localStorage.setItem('movement_snacks_users_local', JSON.stringify(filtered));
+      setUsersList(filtered);
+      if (currentUser?.id === userId) {
+        setCurrentUser(null);
+        localStorage.removeItem('movement_snacks_user_id');
+        localStorage.removeItem('movement_snacks_profile');
+        setGameState('user_selection');
+      }
+    }
+  };
+
+  // Cerrar sesión y volver a selección de usuario
+  const handleLogOutUser = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('movement_snacks_user_id');
+    localStorage.removeItem('movement_snacks_profile');
+    localStorage.removeItem('movement_snacks_daily_state');
+    
+    // Recargar lista fresquita de usuarios
+    const fetchUsers = async () => {
+      if (supabase) {
+        try {
+          const { data } = await supabase.from('users').select('*');
+          if (data) setUsersList(data);
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        const localUsers = JSON.parse(localStorage.getItem('movement_snacks_users_local') || '[]');
+        setUsersList(localUsers);
+      }
+    };
+    fetchUsers();
+    setGameState('user_selection');
+  };
+
   // Modificar perfil desde el panel
   const handleEditProfile = () => {
     setGameState('onboarding');
