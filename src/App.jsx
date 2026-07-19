@@ -1005,6 +1005,30 @@ export default function App() {
     setGameState('user_selection');
   };
 
+  // Iniciar Jornada ("¡Ya estoy aquí!")
+  const handleStartDay = () => {
+    playAudioTone(880, 0.2);
+    setSnoozeCount(0);
+    const minutes = currentUser?.reminder_interval || 45;
+    const targetTime = new Date(Date.now() + minutes * 60 * 1000);
+    
+    // Decidir la categoría inicial de forma circadiana
+    const now = new Date();
+    const currentHour = now.getHours();
+    let initialCategory;
+    if (currentHour >= 15) {
+      initialCategory = 'movilidad';
+    } else {
+      const morningCats = ['pierna', 'empuje', 'tiron'];
+      initialCategory = morningCats[Math.floor(Math.random() * morningCats.length)];
+    }
+    setActiveCategory(initialCategory);
+
+    setNextSnackTime(targetTime);
+    setSecondsToNextSnack(minutes * 60);
+    setGameState('idle_countdown');
+  };
+
   // Modificar perfil desde el panel
   const handleEditProfile = () => {
     setGameState('onboarding');
@@ -1213,10 +1237,10 @@ export default function App() {
         <h1>Snacks de Movimiento</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div className="user-tag">
-            <div className={`monogram ${currentUser.avatar_url || 'm-grad-1'}`}>
-              {getMonogram(currentUser.username)}
+            <div className={`monogram ${currentUser?.avatar_url || 'm-grad-1'}`}>
+              {getMonogram(currentUser?.username)}
             </div>
-            <span>{currentUser.username}</span>
+            <span>{currentUser?.username}</span>
           </div>
           {gameState !== 'onboarding' && gameState !== 'waiting_start' && (
             <button className="db-btn" style={{ padding: '8px 16px', fontSize: '0.75rem', backgroundColor: '#e11d48', color: '#fff', border: 'none' }} onClick={handleCloseDay}>
@@ -1414,7 +1438,7 @@ export default function App() {
               <div className="db-card" style={{ textAlign: 'center', padding: '48px 32px' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '16px' }}>💼</div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '12px' }}>
-                  ¡Hola de nuevo, {currentUser.username}!
+                  ¡Hola de nuevo, {currentUser?.username}!
                 </h2>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', fontSize: '0.95rem' }}>
                   Tu temporizador inteligente está configurado. Pulsa el botón cuando comiences tu jornada de trabajo en el ordenador.
