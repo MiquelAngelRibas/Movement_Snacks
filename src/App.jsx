@@ -125,7 +125,9 @@ export default function App() {
   // --- Estado de Permisos ---
   const [notificationsGranted, setNotificationsGranted] = useState(false);
   const [inTeams, setInTeams] = useState(false);
-  const [dismissedNotificationBanner, setDismissedNotificationBanner] = useState(false);
+  const [dismissedNotificationBanner, setDismissedNotificationBanner] = useState(() => {
+    return localStorage.getItem('movement_snacks_notifications_dismissed') === 'true';
+  });
 
   // --- Referencias ---
   const countdownTimerRef = useRef(null);
@@ -1275,13 +1277,16 @@ export default function App() {
             <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem' }} onClick={requestNotificationPermission}>
               Activar
             </button>
-            <button 
-              style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1rem', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
-              onClick={() => setDismissedNotificationBanner(true)}
-              title="Cerrar aviso"
-            >
-              ✕
-            </button>
+             <button 
+               style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1rem', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+               onClick={() => {
+                 setDismissedNotificationBanner(true);
+                 localStorage.setItem('movement_snacks_notifications_dismissed', 'true');
+               }}
+               title="Cerrar aviso"
+             >
+               ✕
+             </button>
           </div>
         </div>
       )}
