@@ -124,6 +124,7 @@ export default function App() {
 
   // --- Estado de Permisos ---
   const [notificationsGranted, setNotificationsGranted] = useState(false);
+  const [inTeams, setInTeams] = useState(false);
 
   // --- Referencias ---
   const countdownTimerRef = useRef(null);
@@ -146,6 +147,41 @@ export default function App() {
       setNotificationsGranted(Notification.permission === 'granted');
     }
 
+    const restoreDailyState = (user) => {
+      const todayStr = new Date().toLocaleDateString('sv-SE');
+      const cachedState = localStorage.getItem('movement_snacks_daily_state');
+      if (cachedState) {
+        try {
+          const parsed = JSON.parse(cachedState);
+          if (parsed.date === todayStr && parsed.gameState) {
+            if (parsed.gameState === 'active_timer' || parsed.gameState === 'preview_card') {
+              const minutes = user?.reminder_interval || 45;
+              const targetTime = new Date(Date.now() + minutes * 60 * 1000);
+              setGameState('idle_countdown');
+              setNextSnackTime(targetTime);
+              setSecondsToNextSnack(minutes * 60);
+            } else {
+              setGameState(parsed.gameState);
+              if (parsed.nextSnackTime) {
+                const nextTime = new Date(parsed.nextSnackTime);
+                setNextSnackTime(nextTime);
+                const remainingSecs = Math.max(0, Math.floor((nextTime.getTime() - Date.now()) / 1000));
+                setSecondsToNextSnack(remainingSecs);
+              }
+            }
+            if (parsed.activeCategory) {
+              setActiveCategory(parsed.activeCategory);
+            }
+            return true;
+          }
+        } catch (e) {
+          console.error('Error al restaurar estado diario:', e);
+        }
+      }
+      setGameState('waiting_start');
+      return false;
+    };
+
     const checkExistingUser = async () => {
       setLoading(true);
       try {
@@ -153,13 +189,14 @@ export default function App() {
         try {
           await microsoftTeams.app.initialize();
           const context = await microsoftTeams.app.getContext();
+          setInTeams(true);
           if (context?.user?.userPrincipalName) {
             const teamsId = context.user.userPrincipalName; // Usamos email de Teams como ID único
             if (supabase) {
               const { data, error } = await supabase.from('users').select('*').eq('id', teamsId).maybeSingle();
               if (data) {
                 setCurrentUser(data);
-                setGameState('waiting_start');
+                restoreDailyState(data);
                 setLoading(false);
                 return;
               }
@@ -173,6 +210,7 @@ export default function App() {
           }
         } catch (teamsError) {
           console.log('No se detectó el entorno de MS Teams, usando almacenamiento local.');
+          setInTeams(false);
         }
 
         // 2. Fallback a LocalStorage en navegador estándar
@@ -182,7 +220,7 @@ export default function App() {
             const { data, error } = await supabase.from('users').select('*').eq('id', localUserId).maybeSingle();
             if (data) {
               setCurrentUser(data);
-              setGameState('waiting_start');
+              restoreDailyState(data);
               setLoading(false);
               return;
             }
@@ -193,7 +231,7 @@ export default function App() {
           if (cachedUser) {
             const parsed = JSON.parse(cachedUser);
             setCurrentUser(parsed);
-            setGameState('waiting_start');
+            restoreDailyState(parsed);
           } else {
             setGameState('onboarding');
           }
@@ -218,6 +256,20 @@ export default function App() {
       setSelectedGradient(currentUser.avatar_url || 'm-grad-1');
     }
   }, [currentUser, gameState]);
+
+  // --- Persistencia del Estado Diario (para soportar navegación/refrescos en Teams) ---
+  useEffect(() => {
+    if (currentUser && gameState !== 'onboarding') {
+      const todayStr = new Date().toLocaleDateString('sv-SE');
+      const stateToSave = {
+        date: todayStr,
+        gameState,
+        nextSnackTime: nextSnackTime ? nextSnackTime.toISOString() : null,
+        activeCategory
+      };
+      localStorage.setItem('movement_snacks_daily_state', JSON.stringify(stateToSave));
+    }
+  }, [gameState, nextSnackTime, activeCategory, currentUser]);
 
   // --- Carga de Marcador y Feed ---
   useEffect(() => {
@@ -922,7 +974,7 @@ export default function App() {
   return (
     <div className={`app-container ${isWorkoutMode ? 'workout-focus' : ''}`}>
       {/* Banner de Notificación */}
-      {!notificationsGranted && (
+      {!notificationsGranted && !inTeams && (
         <div className="notification-banner">
           <span>Habilita las notificaciones flotantes para recibir alertas de escritorio con auto-enfoque.</span>
           <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem' }} onClick={requestNotificationPermission}>
