@@ -694,15 +694,23 @@ export default function App() {
     showDesktopNotification('¡Hora del Snack de Movimiento!', 'Tómate 2 minutos para mover el cuerpo. ¡Haga clic aquí para comenzar!');
     
     // Cargar la lista de rutinas de la categoría activa
-    const routines = exercisesData[activeCategory];
+    const routines = exercisesData[activeCategory] || exercisesData['pierna'];
     
-    // Rotar de forma secuencial y determinista entre las 3 rutinas disponibles usando localStorage
+    // Rotar de forma secuencial y determinista entre las rutinas disponibles usando localStorage
     const lastRoutineIndexKey = `last_routine_idx_${activeCategory}`;
     const lastIdx = parseInt(localStorage.getItem(lastRoutineIndexKey) || '-1');
-    const nextIdx = (lastIdx + 1) % routines.length;
-    localStorage.setItem(lastRoutineIndexKey, nextIdx.toString());
+    let nextIdx = (lastIdx + 1) % routines.length;
 
+    // Regla de Protección Estricta: Impedir repetir la misma rutina consecutiva
+    const lastRoutineName = localStorage.getItem('movement_snacks_last_routine_name');
+    if (routines[nextIdx].routineName === lastRoutineName && routines.length > 1) {
+      nextIdx = (nextIdx + 1) % routines.length;
+    }
+
+    localStorage.setItem(lastRoutineIndexKey, nextIdx.toString());
     const selectedRoutine = routines[nextIdx];
+    localStorage.setItem('movement_snacks_last_routine_name', selectedRoutine.routineName);
+
     setActiveRoutineName(selectedRoutine.routineName);
     setActivePhases(selectedRoutine.phases);
     setGameState('preview_card');
