@@ -1326,6 +1326,15 @@ export default function App() {
         </div>
       </header>
 
+      {/* Banner Leitmotiv en Relieve de Piedra */}
+      {currentUser && gameState !== 'onboarding' && (
+        <div className="stone-leitmotiv-container">
+          <span className="stone-leitmotiv-text">
+            “No dejes que lo perfecto sea enemigo de lo hecho”
+          </span>
+        </div>
+      )}
+
       {isWorkoutMode ? (
         /* MODO ENTRENAMIENTO: Ocupa el ancho completo (100%) para dar máximo espacio al vídeo y al carrusel */
         <div style={{ width: '100%' }}>
