@@ -1837,21 +1837,8 @@ function BreathingPacer() {
   );
 }
 
-// Componente de demostración visual de ejercicios mediante renders 3D anatómicos locales
+// Componente de demostración visual de ejercicios mediante renders 3D anatómicos locales (GIFs de alta calidad)
 function ExerciseMedia({ name, isHovered = true, style = {} }) {
-  const [frame, setFrame] = useState(0);
-
-  useEffect(() => {
-    if (!isHovered) {
-      setFrame(0);
-      return;
-    }
-    const interval = setInterval(() => {
-      setFrame(f => (f === 0 ? 1 : 0));
-    }, 750); // Velocidad óptima de movimiento (750ms por fase)
-    return () => clearInterval(interval);
-  }, [isHovered]);
-
   if (!name || name === 'Respiración Profunda') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '8px', background: 'var(--bg-secondary)', width: '100%', ...style }}>
@@ -1863,18 +1850,21 @@ function ExerciseMedia({ name, isHovered = true, style = {} }) {
 
   const sanitizedName = name.replace(/[?¿/]/g, '_');
   const basePath = import.meta.env.BASE_URL || './';
-  const imageSrc = `${basePath.endsWith('/') ? basePath : basePath + '/'}exercises/${encodeURIComponent(sanitizedName)}/${frame}.jpg`;
+  
+  // Si no está en hover (en el catálogo), mostramos el fotograma 0 estático. 
+  // Si está activo o en hover, mostramos el GIF animado completo con movimiento fluido de más de 30 fotogramas.
+  const fileName = isHovered ? 'animation.gif' : '0.jpg';
+  const mediaSrc = `${basePath.endsWith('/') ? basePath : basePath + '/'}exercises/${encodeURIComponent(sanitizedName)}/${fileName}`;
 
   return (
     <img
-      src={imageSrc}
+      src={mediaSrc}
       alt={name}
       style={{
         width: '100%',
         height: '100%',
         objectFit: 'contain',
         backgroundColor: '#f8fafc',
-        transition: 'transform 0.15s ease',
         ...style
       }}
       onError={(e) => {
