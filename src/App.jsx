@@ -8,17 +8,28 @@ import AnatomicalModel from './AnatomicalModel';
 // Utilidad para reproducir tonos audibles mediante la Web Audio API (evita depender de mp3 externos)
 const playAudioTone = (frequency = 440, duration = 0.15) => {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    
     osc.connect(gain);
     gain.connect(ctx.destination);
+    
     osc.frequency.value = frequency;
     osc.type = 'sine';
+    
     gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + duration);
+    
+    // Cerrar el contexto de audio tras sonar para liberar recursos del navegador
+    setTimeout(() => {
+      ctx.close().catch(err => console.warn('Error al cerrar AudioContext:', err));
+    }, (duration * 1000) + 100);
   } catch (error) {
     console.warn('AudioContext bloqueado o no soportado:', error);
   }
@@ -1822,6 +1833,10 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* Indicador de versión para control de caché */}
+      <footer style={{ marginTop: 'auto', paddingTop: '32px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+        <span>v1.2.0 - Temporizador Garmin con Transición de 5s Activa ⏱️</span>
+      </footer>
     </div>
   );
 }
