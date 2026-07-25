@@ -1536,7 +1536,7 @@ export default function App() {
                 </div>
 
                 <div className="timer-display" style={{ marginTop: '10px' }}>
-                  <div className="timer-countdown" style={{ fontSize: '4.5rem', lineHeight: '1.1', color: inTransition ? 'var(--accent)' : '#fff' }}>
+                  <div className="timer-countdown" style={{ fontSize: '4.5rem', lineHeight: '1.1', color: inTransition ? 'var(--accent)' : '#000000' }}>
                     {inTransition ? `Prep: ${secondsInPhase}s` : formatTime(secondsInPhase)}
                   </div>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '10px', maxWidth: '500px', marginInline: 'auto' }}>
@@ -1835,7 +1835,7 @@ export default function App() {
       )}
       {/* Indicador de versión para control de caché */}
       <footer style={{ marginTop: 'auto', paddingTop: '32px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-        <span>v1.2.1 - Vídeos Originales de YouTube (Premium Habilitado) ⏱️</span>
+        <span>v1.2.2 - Vídeos Originales de YouTube (Premium Habilitado) ⏱️</span>
       </footer>
     </div>
   );
