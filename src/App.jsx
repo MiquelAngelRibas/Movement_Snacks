@@ -1396,23 +1396,8 @@ export default function App() {
                     <div key={idx} className="filmstrip-card">
                       <span className="filmstrip-card-title">Fase {idx + 1}</span>
                       
-                      <div className="filmstrip-video-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '8px', overflow: 'hidden' }}>
-                        {!phase.youtubeId ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '2.5rem' }}>🌬️</span>
-                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Respiración</span>
-                          </div>
-                        ) : (
-                          <iframe
-                            width="100%"
-                            height="100%"
-                            src={`https://www.youtube-nocookie.com/embed/${phase.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${phase.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${phase.startTime ? `&start=${phase.startTime}` : ''}`}
-                            title={`Previo ${idx + 1}`}
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            style={{ borderRadius: '8px', width: '100%', height: '100%', pointerEvents: 'none' }}
-                          />
-                        )}
+                      <div className="filmstrip-video-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '8px', overflow: 'hidden', height: '110px', width: '100%' }}>
+                        <ExerciseMedia name={phase.name} isHovered={true} />
                       </div>
 
                       <span className="filmstrip-card-desc">{phase.name}</span>
@@ -1521,16 +1506,9 @@ export default function App() {
                     ) : currentPhaseIndex === 4 ? (
                       <BreathingPacer />
                     ) : (
-                      <iframe
-                        key={activePhases[currentPhaseIndex]?.youtubeId}
-                        width="100%"
-                        height="100%"
-                        src={`https://www.youtube-nocookie.com/embed/${activePhases[currentPhaseIndex]?.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${activePhases[currentPhaseIndex]?.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${activePhases[currentPhaseIndex]?.startTime ? `&start=${activePhases[currentPhaseIndex].startTime}` : ''}`}
-                        title="Guía del Ejercicio"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        style={{ borderRadius: '8px', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                      />
+                      <div style={{ width: '100%', height: '100%', borderRadius: '8px', overflow: 'hidden' }}>
+                        <ExerciseMedia name={activePhases[currentPhaseIndex]?.name} isHovered={true} />
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1787,30 +1765,8 @@ export default function App() {
                         onMouseEnter={() => setHoveredExercise(ex.name)}
                         onMouseLeave={() => setHoveredExercise(null)}
                       >
-                        <div className="exercise-video-thumbnail-container">
-                          {isHovered ? (
-                            <iframe
-                              width="100%"
-                              height="100%"
-                              src={`https://www.youtube-nocookie.com/embed/${ex.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${ex.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${ex.startTime ? `&start=${ex.startTime}` : ''}`}
-                              title={ex.name}
-                              frameBorder="0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
-                            />
-                          ) : (
-                            <>
-                              <img 
-                                src={`https://img.youtube.com/vi/${ex.youtubeId}/0.jpg`} 
-                                alt={ex.name}
-                                className="exercise-video-thumbnail-img"
-                                loading="lazy"
-                              />
-                              <div className="exercise-play-overlay">
-                                <div className="exercise-play-btn">▶</div>
-                              </div>
-                            </>
-                          )}
+                        <div className="exercise-video-thumbnail-container" style={{ height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <ExerciseMedia name={ex.name} isHovered={isHovered} />
                         </div>
                         
                         <div className="exercise-card-info">
@@ -1878,6 +1834,54 @@ function BreathingPacer() {
       </div>
       <div className="breathing-subtext">Sigue el ritmo para bajar pulsaciones</div>
     </div>
+  );
+}
+
+// Componente de demostración visual de ejercicios mediante renders 3D anatómicos locales
+function ExerciseMedia({ name, isHovered = true, style = {} }) {
+  const [frame, setFrame] = useState(0);
+
+  useEffect(() => {
+    if (!isHovered) {
+      setFrame(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setFrame(f => (f === 0 ? 1 : 0));
+    }, 750); // Velocidad óptima de movimiento (750ms por fase)
+    return () => clearInterval(interval);
+  }, [isHovered]);
+
+  if (!name || name === 'Respiración Profunda') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '8px', background: 'var(--bg-secondary)', width: '100%', ...style }}>
+        <span style={{ fontSize: '2.5rem' }}>🌬️</span>
+        <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Respiración</span>
+      </div>
+    );
+  }
+
+  const sanitizedName = name.replace(/[?¿/]/g, '_');
+  const basePath = import.meta.env.BASE_URL || './';
+  const imageSrc = `${basePath.endsWith('/') ? basePath : basePath + '/'}exercises/${encodeURIComponent(sanitizedName)}/${frame}.jpg`;
+
+  return (
+    <img
+      src={imageSrc}
+      alt={name}
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'contain',
+        backgroundColor: '#f8fafc',
+        transition: 'transform 0.15s ease',
+        ...style
+      }}
+      onError={(e) => {
+        e.target.onerror = null;
+        e.target.src = 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&q=80';
+      }}
+    />
   );
 }
 
