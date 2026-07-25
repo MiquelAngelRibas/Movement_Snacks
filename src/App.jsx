@@ -1396,8 +1396,23 @@ export default function App() {
                     <div key={idx} className="filmstrip-card">
                       <span className="filmstrip-card-title">Fase {idx + 1}</span>
                       
-                      <div className="filmstrip-video-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '8px', overflow: 'hidden', height: '110px', width: '100%' }}>
-                        <ExerciseMedia name={phase.name} isHovered={true} />
+                      <div className="filmstrip-video-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '8px', overflow: 'hidden' }}>
+                        {!phase.youtubeId ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '2.5rem' }}>🌬️</span>
+                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Respiración</span>
+                          </div>
+                        ) : (
+                          <iframe
+                            width="100%"
+                            height="100%"
+                            src={`https://www.youtube.com/embed/${phase.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${phase.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${phase.startTime ? `&start=${phase.startTime}` : ''}`}
+                            title={`Previo ${idx + 1}`}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            style={{ borderRadius: '8px', width: '100%', height: '100%', pointerEvents: 'none' }}
+                          />
+                        )}
                       </div>
 
                       <span className="filmstrip-card-desc">{phase.name}</span>
@@ -1506,9 +1521,16 @@ export default function App() {
                     ) : currentPhaseIndex === 4 ? (
                       <BreathingPacer />
                     ) : (
-                      <div style={{ width: '100%', height: '100%', borderRadius: '8px', overflow: 'hidden' }}>
-                        <ExerciseMedia name={activePhases[currentPhaseIndex]?.name} isHovered={true} />
-                      </div>
+                      <iframe
+                        key={activePhases[currentPhaseIndex]?.youtubeId}
+                        width="100%"
+                        height="100%"
+                        src={`https://www.youtube.com/embed/${activePhases[currentPhaseIndex]?.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${activePhases[currentPhaseIndex]?.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${activePhases[currentPhaseIndex]?.startTime ? `&start=${activePhases[currentPhaseIndex].startTime}` : ''}`}
+                        title="Guía del Ejercicio"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        style={{ borderRadius: '8px', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                      />
                     )}
                   </div>
                 </div>
@@ -1765,8 +1787,30 @@ export default function App() {
                         onMouseEnter={() => setHoveredExercise(ex.name)}
                         onMouseLeave={() => setHoveredExercise(null)}
                       >
-                        <div className="exercise-video-thumbnail-container" style={{ height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <ExerciseMedia name={ex.name} isHovered={isHovered} />
+                        <div className="exercise-video-thumbnail-container">
+                          {isHovered ? (
+                            <iframe
+                              width="100%"
+                              height="100%"
+                              src={`https://www.youtube.com/embed/${ex.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${ex.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${ex.startTime ? `&start=${ex.startTime}` : ''}`}
+                              title={ex.name}
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
+                            />
+                          ) : (
+                            <>
+                              <img 
+                                src={`https://img.youtube.com/vi/${ex.youtubeId}/0.jpg`} 
+                                alt={ex.name}
+                                className="exercise-video-thumbnail-img"
+                                loading="lazy"
+                              />
+                              <div className="exercise-play-overlay">
+                                <div className="exercise-play-btn">▶</div>
+                              </div>
+                            </>
+                          )}
                         </div>
                         
                         <div className="exercise-card-info">
@@ -1791,7 +1835,7 @@ export default function App() {
       )}
       {/* Indicador de versión para control de caché */}
       <footer style={{ marginTop: 'auto', paddingTop: '32px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-        <span>v1.2.0 - Temporizador Garmin con Transición de 5s Activa ⏱️</span>
+        <span>v1.2.1 - Vídeos Originales de YouTube (Premium Habilitado) ⏱️</span>
       </footer>
     </div>
   );
@@ -1837,43 +1881,7 @@ function BreathingPacer() {
   );
 }
 
-// Componente de demostración visual de ejercicios mediante renders 3D anatómicos locales (GIFs de alta calidad)
-function ExerciseMedia({ name, isHovered = true, style = {} }) {
-  if (!name || name === 'Respiración Profunda') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '8px', background: 'var(--bg-secondary)', width: '100%', ...style }}>
-        <span style={{ fontSize: '2.5rem' }}>🌬️</span>
-        <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Respiración</span>
-      </div>
-    );
-  }
 
-  const sanitizedName = name.replace(/[?¿/]/g, '_');
-  const basePath = import.meta.env.BASE_URL || './';
-  
-  // Si no está en hover (en el catálogo), mostramos el fotograma 0 estático. 
-  // Si está activo o en hover, mostramos el GIF animado completo con movimiento fluido de más de 30 fotogramas.
-  const fileName = isHovered ? 'animation.gif' : '0.jpg';
-  const mediaSrc = `${basePath.endsWith('/') ? basePath : basePath + '/'}exercises/${encodeURIComponent(sanitizedName)}/${fileName}`;
-
-  return (
-    <img
-      src={mediaSrc}
-      alt={name}
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'contain',
-        backgroundColor: '#f8fafc',
-        ...style
-      }}
-      onError={(e) => {
-        e.target.onerror = null;
-        e.target.src = 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&q=80';
-      }}
-    />
-  );
-}
 
 // Componente del Calendario de Campeones Diarios (Histórico)
 function CalendarWidget({ dailyWinners, getMonogram }) {
