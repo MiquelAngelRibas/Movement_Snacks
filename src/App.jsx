@@ -1835,7 +1835,7 @@ export default function App() {
       )}
       {/* Indicador de versión para control de caché */}
       <footer style={{ marginTop: 'auto', paddingTop: '32px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-        <span>v1.2.3 - Vídeos Originales de YouTube (Premium Habilitado) ⏱️</span>
+        <span>v1.2.4 - Vídeos Originales de YouTube (Premium Habilitado) ⏱️</span>
       </footer>
     </div>
   );
