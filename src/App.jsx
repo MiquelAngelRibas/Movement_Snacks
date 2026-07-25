@@ -116,6 +116,7 @@ export default function App() {
   const [startCountdown, setStartCountdown] = useState(-1);
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
   const [secondsInPhase, setSecondsInPhase] = useState(0);
+  const [inTransition, setInTransition] = useState(false);
 
   // --- Estados del Tablero Social (Supabase) ---
   const [usersList, setUsersList] = useState([]);
@@ -728,35 +729,67 @@ export default function App() {
     runWorkoutTimer();
   };
 
-  // Cronómetro del ejercicio activo
+  // Cronómetro del ejercicio activo con fase de preparación de 5 segundos
   const runWorkoutTimer = () => {
     setCurrentPhaseIndex(0);
     setSecondsInPhase(activePhases[0].duration);
+    setInTransition(false);
 
     let phaseIdx = 0;
     let secLeft = activePhases[0].duration;
+    let isTrans = false;
+    let transLeft = 0;
 
     activeSnackTimerRef.current = setInterval(() => {
-      secLeft--;
-      setSecondsInPhase(secLeft);
+      if (isTrans) {
+        // En transición de preparación de 5 segundos
+        transLeft--;
+        setSecondsInPhase(transLeft);
 
-      // Pitidos cortos tipo Garmin en los últimos 5 segundos de la fase
-      if (secLeft <= 5 && secLeft > 0) {
-        playAudioTone(1000, 0.05); // Pitido corto y agudo
-      }
+        if (transLeft > 0) {
+          // Pitido de cuenta atrás en transición (grave y seco)
+          playAudioTone(580, 0.08);
+        }
 
-      if (secLeft <= 0) {
-        // Avanzar de fase
-        phaseIdx++;
-        if (phaseIdx < activePhases.length) {
-          playAudioTone(520, 0.25); // Pitido de aviso de cambio de ejercicio
-          setCurrentPhaseIndex(phaseIdx);
+        if (transLeft <= 0) {
+          // Finaliza la transición: Pitido agudo de inicio ("Ya!")
+          playAudioTone(880, 0.22);
+          isTrans = false;
+          setInTransition(false);
+          
           secLeft = activePhases[phaseIdx].duration;
           setSecondsInPhase(secLeft);
-        } else {
-          // Snack completado!
-          clearInterval(activeSnackTimerRef.current);
-          handleSnackCompleted();
+        }
+      } else {
+        // En ejercicio activo
+        secLeft--;
+        setSecondsInPhase(secLeft);
+
+        // Pitidos cortos tipo Garmin en los últimos 5 segundos de la fase
+        if (secLeft <= 5 && secLeft > 0) {
+          playAudioTone(1000, 0.05); // Pitido corto y agudo
+        }
+
+        if (secLeft <= 0) {
+          // Avanzar de fase
+          phaseIdx++;
+          if (phaseIdx < activePhases.length) {
+            // Triple pitido de cambio (pip, pip, piiip)
+            playAudioTone(1100, 0.06);
+            setTimeout(() => playAudioTone(1100, 0.06), 120);
+            setTimeout(() => playAudioTone(1100, 0.12), 240);
+            
+            // Entrar en fase de transición de 5 segundos
+            isTrans = true;
+            setInTransition(true);
+            setCurrentPhaseIndex(phaseIdx); // Mostrar el siguiente ejercicio en pantalla
+            transLeft = 5;
+            setSecondsInPhase(transLeft);
+          } else {
+            // Snack completado!
+            clearInterval(activeSnackTimerRef.current);
+            handleSnackCompleted();
+          }
         }
       }
     }, 1000);
@@ -1423,20 +1456,58 @@ export default function App() {
               <div className="db-card" style={{ gap: '20px', padding: '24px' }}>
                 <div className="db-card-header">
                   <div>
-                    <h2 className="db-card-title" style={{ fontSize: '1.25rem' }}>{activePhases[currentPhaseIndex]?.name}</h2>
+                    <h2 className="db-card-title" style={{ fontSize: '1.25rem' }}>
+                      {inTransition ? `Siguiente: ${activePhases[currentPhaseIndex]?.name}` : activePhases[currentPhaseIndex]?.name}
+                    </h2>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', marginTop: '2px' }}>
                       {activeRoutineName}
                     </div>
                   </div>
                   <span style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 800, letterSpacing: '0.05em' }}>
-                    FASE {currentPhaseIndex + 1} DE 5
+                    {inTransition ? 'PREPARACIÓN' : `FASE ${currentPhaseIndex + 1} DE 5`}
                   </span>
                 </div>
 
                 <div className="active-video-widget">
-                  <div className="active-video-label">Demostración en Vídeo</div>
+                  <div className="active-video-label">{inTransition ? 'Prepárate para el siguiente movimiento' : 'Demostración en Vídeo'}</div>
                   <div className="active-video-container" style={{ position: 'relative', width: '100%', height: '460px' }}>
-                    {currentPhaseIndex === 4 ? (
+                    {inTransition ? (
+                      <div style={{ 
+                        position: 'absolute', 
+                        top: 0, 
+                        left: 0, 
+                        width: '100%', 
+                        height: '100%', 
+                        background: 'radial-gradient(circle at center, #1e293b 0%, #0f172a 100%)',
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        borderRadius: '8px',
+                        border: '2px dashed var(--accent)',
+                        boxShadow: 'inset 0 0 40px rgba(0,0,0,0.6)',
+                      }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '12px' }}>
+                          Siguiente Ejercicio - Prepárate 🏁
+                        </span>
+                        <h3 style={{ fontSize: '2rem', fontWeight: 900, textTransform: 'uppercase', margin: '0 0 12px 0', color: '#fff', textAlign: 'center', padding: '0 20px' }}>
+                          {activePhases[currentPhaseIndex]?.name}
+                        </h3>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', maxWidth: '460px', textAlign: 'center', margin: '0 0 20px 0', padding: '0 20px', lineHeight: '1.45' }}>
+                          {activePhases[currentPhaseIndex]?.desc}
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '6px 14px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '32px' }}>
+                          <span style={{ fontSize: '0.9rem' }}>🎯</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Músculos: {activePhases[currentPhaseIndex]?.muscles}</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Comienza en</span>
+                          <span style={{ fontSize: '5rem', fontWeight: 950, color: 'var(--accent)', lineHeight: 1, textShadow: '0 0 25px rgba(239, 68, 68, 0.4)' }}>
+                            {secondsInPhase}
+                          </span>
+                        </div>
+                      </div>
+                    ) : currentPhaseIndex === 4 ? (
                       <BreathingPacer />
                     ) : (
                       <iframe
@@ -1454,7 +1525,9 @@ export default function App() {
                 </div>
 
                 <div className="timer-display" style={{ marginTop: '10px' }}>
-                  <div className="timer-countdown" style={{ fontSize: '4.5rem', lineHeight: '1.1' }}>{formatTime(secondsInPhase)}</div>
+                  <div className="timer-countdown" style={{ fontSize: '4.5rem', lineHeight: '1.1', color: inTransition ? 'var(--accent)' : '#fff' }}>
+                    {inTransition ? `Prep: ${secondsInPhase}s` : formatTime(secondsInPhase)}
+                  </div>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '10px', maxWidth: '500px', marginInline: 'auto' }}>
                     {activePhases[currentPhaseIndex]?.desc}
                   </p>
