@@ -740,16 +740,16 @@ export default function App() {
     runWorkoutTimer();
   };
 
-  // Cronómetro del ejercicio activo con fase de preparación de 5 segundos
+  // Cronómetro del ejercicio activo con fase de preparación inicial de 5 segundos
   const runWorkoutTimer = () => {
     setCurrentPhaseIndex(0);
-    setSecondsInPhase(activePhases[0].duration);
-    setInTransition(false);
+    setSecondsInPhase(5);
+    setInTransition(true);
 
     let phaseIdx = 0;
     let secLeft = activePhases[0].duration;
-    let isTrans = false;
-    let transLeft = 0;
+    let isTrans = true;
+    let transLeft = 5;
 
     activeSnackTimerRef.current = setInterval(() => {
       if (isTrans) {
@@ -1835,7 +1835,7 @@ export default function App() {
       )}
       {/* Indicador de versión para control de caché */}
       <footer style={{ marginTop: 'auto', paddingTop: '32px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-        <span>v1.2.5 - Vídeos Originales de YouTube (Premium Habilitado) ⏱️</span>
+        <span>v1.3.0 - Preparación Inicial de 5s Activa ⏱️</span>
       </footer>
     </div>
   );
