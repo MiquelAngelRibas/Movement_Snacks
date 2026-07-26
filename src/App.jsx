@@ -417,13 +417,20 @@ export default function App() {
         const { data: usersData } = await supabase.from('users').select('*');
         const activeUsersData = (usersData || []).filter(u => !u.username.startsWith('__deleted__'));
         
-        // Obtener logs completados a partir de la fecha de inicio del proyecto (lunes 20 de julio de 2026)
+        // Obtener logs completados a partir de la fecha de inicio del proyecto, ignorando registros de prueba del 25 y 26 de julio
         const projectStart = new Date('2026-07-20T00:00:00Z');
-        const { data: allLogsData } = await supabase
+        const testCutoff = new Date('2026-07-26T16:13:00Z');
+        const { data: rawLogsData } = await supabase
           .from('snacks_log')
           .select('user_id, points_earned, status, created_at')
           .eq('status', 'completed')
           .gte('created_at', projectStart.toISOString());
+
+        const allLogsData = (rawLogsData || []).filter(log => {
+          const logTime = new Date(log.created_at);
+          const isTestLog = logTime >= new Date('2026-07-25T00:00:00Z') && logTime <= testCutoff;
+          return !isTestLog;
+        });
 
         // Filtrar para el marcador de hoy
         const todayStr = new Date().toLocaleDateString('sv-SE');
@@ -465,14 +472,21 @@ export default function App() {
 
       try {
         const projectStart = new Date('2026-07-20T00:00:00Z');
+        const testCutoff = new Date('2026-07-26T16:13:00Z');
         const { data: logsData } = await supabase
           .from('snacks_log')
           .select('*, users(username, avatar_url)')
           .gte('created_at', projectStart.toISOString())
           .order('created_at', { ascending: false })
-          .limit(10);
+          .limit(30);
 
-        setActivityFeed(logsData || []);
+        const filteredLogs = (logsData || []).filter(log => {
+          const logTime = new Date(log.created_at);
+          const isTestLog = logTime >= new Date('2026-07-25T00:00:00Z') && logTime <= testCutoff;
+          return !isTestLog;
+        }).slice(0, 10);
+
+        setActivityFeed(filteredLogs || []);
       } catch (err) {
         console.error('Error al cargar feed de actividad:', err);
       }
@@ -1835,7 +1849,7 @@ export default function App() {
       )}
       {/* Indicador de versión para control de caché */}
       <footer style={{ marginTop: 'auto', paddingTop: '32px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-        <span>v1.3.0 - Preparación Inicial de 5s Activa ⏱️</span>
+        <span>v1.3.1 - Filtro de Limpieza de Registros de Prueba ⏱️</span>
       </footer>
     </div>
   );
