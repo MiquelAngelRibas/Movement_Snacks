@@ -358,6 +358,361 @@ header h1 {
   margin-top: 8px;
 }
 
+/* Maniquí animado para las demostraciones de ejercicio */
+.exercise-mannequin {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(145deg, #edf3f7, #d6e0e8);
+  border-radius: 8px;
+}
+
+.exercise-mannequin.compact {
+  min-height: 150px;
+  border-radius: 6px;
+}
+
+.exercise-mannequin svg {
+  width: min(92%, 390px);
+  height: 100%;
+  max-height: 440px;
+}
+
+.exercise-mannequin.compact svg {
+  width: min(88%, 180px);
+  max-height: 180px;
+}
+
+/* Demostraciones GIF incluidas con el proyecto, sin dependencias externas. */
+.exercise-demo {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 8px;
+}
+
+.exercise-demo.compact {
+  min-height: 0;
+}
+
+.exercise-demo img {
+  width: auto;
+  height: auto;
+  max-width: min(88%, 360px);
+  max-height: 88%;
+  object-fit: contain;
+  object-position: center;
+  image-rendering: auto;
+}
+
+.exercise-demo.compact img {
+  max-width: 88%;
+  max-height: 88%;
+}
+
+.breathing-visual {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #fff7f7 0%, #fee2e2 46%, #f8fafc 100%);
+  border-radius: 8px;
+}
+
+.breathing-visual.compact {
+  min-height: 0;
+}
+
+.breathing-ring,
+.breathing-core {
+  position: absolute;
+  border-radius: 50%;
+  animation: breathing-pulse 10s ease-in-out infinite;
+}
+
+.breathing-ring {
+  width: min(48vw, 250px);
+  aspect-ratio: 1;
+  border: 4px solid #dc2626;
+  box-shadow: 0 0 0 18px rgba(220, 38, 38, 0.08), 0 0 45px rgba(220, 38, 38, 0.22);
+}
+
+.breathing-core {
+  width: min(28vw, 135px);
+  aspect-ratio: 1;
+  background: radial-gradient(circle at 35% 30%, #fb7185, #dc2626 68%, #991b1b);
+  box-shadow: 0 10px 30px rgba(153, 27, 27, 0.32);
+}
+
+.breathing-visual.compact .breathing-ring { width: 68px; border-width: 2px; box-shadow: 0 0 0 7px rgba(220, 38, 38, 0.08); }
+.breathing-visual.compact .breathing-core { width: 36px; }
+
+.breathing-copy {
+  position: absolute;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #991b1b;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.breathing-copy span { color: #b91c1c; font-size: 0.72rem; letter-spacing: 0; }
+
+.challenge-visual { position: relative; width: 100%; height: 100%; min-height: 280px; display: grid; place-items: center; overflow: hidden; background: #f8fafc; border-radius: 8px; }
+.challenge-visual.compact { min-height: 0; }
+.challenge-visual strong { position: absolute; bottom: 24px; color: #0f172a; font-size: 0.75rem; letter-spacing: 0.08em; }
+.challenge-kettlebell { position: absolute; bottom: 50px; width: 62px; height: 62px; border-radius: 12px 12px 20px 20px; background: #0f172a; color: #fff; display: grid; place-items: center; font-size: 0.7rem; font-weight: 900; }
+.challenge-kettlebell::before { content: ''; position: absolute; top: -24px; width: 32px; height: 28px; border: 8px solid #0f172a; border-bottom: 0; border-radius: 18px 18px 0 0; }
+.challenge-kettlebell.left { left: 18%; }
+.challenge-kettlebell.right { right: 18%; }
+.challenge-stairs { position: relative; width: 114px; height: 120px; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 6px; }
+.challenge-stairs i { display: block; height: 28px; background: #dc2626; border-radius: 3px 0 0 3px; }
+.challenge-stairs i:nth-child(1) { width: 44px; }
+.challenge-stairs i:nth-child(2) { width: 76px; }
+.challenge-stairs i:nth-child(3) { width: 108px; }
+.challenge-bar { position: absolute; top: 48px; width: 190px; height: 10px; background: #0f172a; border-radius: 99px; }
+.challenge-hanger { position: relative; width: 92px; height: 150px; margin-top: 30px; animation: hang-sway 2.2s ease-in-out infinite alternate; transform-origin: top center; }
+.challenge-hanger span { position: absolute; top: 0; left: 39px; width: 14px; height: 48px; background: #0f172a; border-radius: 8px; }
+.challenge-hanger i { position: absolute; top: 42px; left: 23px; width: 46px; height: 58px; background: #dc2626; border-radius: 26px 26px 18px 18px; }
+.challenge-hanger b { position: absolute; top: 30px; left: 30px; width: 32px; height: 32px; border-radius: 50%; background: #f5c9a5; }
+.challenge-hanger em { position: absolute; top: 93px; width: 14px; height: 59px; background: #0f172a; border-radius: 8px; transform-origin: top center; }
+.challenge-hanger em:nth-of-type(1) { left: 30px; transform: rotate(10deg); }
+.challenge-hanger em:nth-of-type(2) { right: 30px; transform: rotate(-10deg); }
+.challenge-visual.compact .challenge-kettlebell { transform: scale(0.52); bottom: 18px; }
+.challenge-visual.compact .challenge-stairs { transform: scale(0.52); }
+.challenge-visual.compact .challenge-bar { transform: scale(0.55); top: 17px; }
+.challenge-visual.compact .challenge-hanger { transform: scale(0.5); margin-top: 4px; }
+.challenge-visual.compact strong { display: none; }
+
+@keyframes hang-sway { to { transform: rotate(4deg); } }
+
+@keyframes breathing-pulse {
+  0%, 100% { transform: scale(0.62); opacity: 0.72; }
+  40%, 60% { transform: scale(1); opacity: 1; }
+}
+
+/* Maniquí articulado: el gesto azul se mueve hasta la referencia naranja. */
+.exercise-mannequin.articulate {
+  position: relative;
+  min-height: 0;
+  background: linear-gradient(135deg, #f8fbfd 0%, #dbe8f0 100%);
+}
+
+.exercise-mannequin.articulate.compact {
+  min-height: 0;
+}
+
+.exercise-mannequin .exercise-skeleton {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  filter: drop-shadow(0 6px 8px rgba(15, 23, 42, 0.14));
+}
+
+.exercise-grid {
+  stroke: rgba(71, 85, 105, 0.16);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+}
+
+.exercise-floor {
+  stroke: #64748b;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.exercise-ghost,
+.exercise-ghost-head {
+  fill: none;
+  stroke: #f97316;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 4 4;
+  opacity: 0.72;
+}
+
+.exercise-ghost-head {
+  fill: rgba(249, 115, 22, 0.08);
+  stroke-width: 3;
+  stroke-dasharray: 3 3;
+}
+
+.exercise-torso,
+.exercise-limb {
+  fill: none;
+  stroke: url(#exercise-body);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: url(#exercise-shadow);
+}
+
+.exercise-torso { stroke-width: 15; }
+.exercise-limb { stroke-width: 10; }
+
+.exercise-head {
+  fill: url(#exercise-body);
+  stroke: #075985;
+  stroke-width: 2;
+  filter: url(#exercise-shadow);
+}
+
+.exercise-direction {
+  fill: none;
+  stroke: #f97316;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.exercise-motion-caption {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 20px);
+  padding: 5px 9px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #475569;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.mannequin-glow {
+  fill: url(#mannequin-glow);
+}
+
+.mannequin-axis {
+  stroke: rgba(15, 23, 42, 0.09);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+
+.m-head,
+.m-arm,
+.m-leg,
+.m-torso,
+.m-neck,
+.m-foot {
+  fill: none;
+  stroke: url(#mannequin-metal);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.m-head {
+  fill: url(#mannequin-metal);
+  stroke: #718293;
+  stroke-width: 2;
+}
+
+.m-torso { stroke-width: 15; }
+.m-neck { stroke-width: 8; }
+.m-arm, .m-leg { stroke-width: 10; }
+.m-foot { stroke: #536575; stroke-width: 7; }
+.m-joint { fill: #526574; stroke: #e5edf4; stroke-width: 2; }
+.floor-line { stroke: rgba(15, 23, 42, 0.28); stroke-width: 2; }
+
+.standing, .floor-body {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.arm-left, .arm-right, .leg-left, .leg-right, .m-head {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.motion-breathing { animation: mannequin-breathe 4s ease-in-out infinite; }
+.motion-jacks .arm-left, .motion-jacks .arm-right { animation: mannequin-jack-arms 1.1s ease-in-out infinite alternate; }
+.motion-jacks .leg-left, .motion-jacks .leg-right { animation: mannequin-jack-legs 1.1s ease-in-out infinite alternate; }
+.motion-half-jacks .arm-left, .motion-half-jacks .arm-right { animation: mannequin-half-jack-arms 1.2s ease-in-out infinite alternate; }
+.motion-half-jacks .leg-left, .motion-half-jacks .leg-right { animation: mannequin-jack-legs 1.2s ease-in-out infinite alternate; }
+.motion-march .leg-left { animation: mannequin-march-left 0.8s ease-in-out infinite alternate; }
+.motion-march .leg-right { animation: mannequin-march-right 0.8s ease-in-out infinite alternate; }
+.motion-butt-kicks .leg-left, .motion-butt-kicks .leg-right { animation: mannequin-butt-kick 0.65s ease-in-out infinite alternate; }
+.motion-skater { animation: mannequin-skater 1.15s ease-in-out infinite alternate; }
+.motion-squat { animation: mannequin-squat 1.5s ease-in-out infinite alternate; }
+.motion-lunge { animation: mannequin-lunge 1.6s ease-in-out infinite alternate; }
+.motion-calf-raise { animation: mannequin-calf-raise 1s ease-in-out infinite alternate; }
+.motion-hinge { animation: mannequin-hinge 1.8s ease-in-out infinite alternate; }
+.motion-wall-angels .arm-left, .motion-wall-angels .arm-right { animation: mannequin-wall-arms 1.8s ease-in-out infinite alternate; }
+.motion-row .arm-left, .motion-row .arm-right { animation: mannequin-row 1.2s ease-in-out infinite alternate; }
+.motion-arm-circles .arm-left { animation: mannequin-arm-circle-left 1.4s linear infinite; }
+.motion-arm-circles .arm-right { animation: mannequin-arm-circle-right 1.4s linear infinite; }
+.motion-chest-open .arm-left, .motion-chest-open .arm-right { animation: mannequin-chest-open 1.8s ease-in-out infinite alternate; }
+.motion-neck-roll .m-head { animation: mannequin-neck-roll 2.4s ease-in-out infinite; }
+.motion-hip-circles { animation: mannequin-hip-circles 2s ease-in-out infinite; }
+.motion-side-reach { animation: mannequin-side-reach 1.8s ease-in-out infinite alternate; }
+.motion-twist { animation: mannequin-twist 1.8s ease-in-out infinite alternate; }
+.motion-leg-swing .leg-left, .motion-leg-swing .leg-right { animation: mannequin-leg-swing 1.2s ease-in-out infinite alternate; }
+.motion-pushup .floor-body, .motion-pike-pushup .floor-body { animation: mannequin-pushup 1.5s ease-in-out infinite alternate; }
+.motion-plank .floor-body { animation: mannequin-plank 1.2s ease-in-out infinite alternate; }
+.motion-mountain-climbers .leg-left, .motion-mountain-climbers .leg-right { animation: mannequin-climber 0.7s ease-in-out infinite alternate; }
+.motion-glute-bridge .floor-body, .motion-reverse-plank .floor-body { animation: mannequin-bridge 1.7s ease-in-out infinite alternate; }
+.motion-child-pose .floor-body { animation: mannequin-child-pose 2.6s ease-in-out infinite alternate; }
+.motion-cobra .floor-body { animation: mannequin-cobra 2s ease-in-out infinite alternate; }
+.motion-superman .floor-body { animation: mannequin-superman 1.6s ease-in-out infinite alternate; }
+.motion-cat-cow .floor-body { animation: mannequin-cat-cow 1.8s ease-in-out infinite alternate; }
+.motion-side-leg-raise .leg-right { animation: mannequin-side-leg-raise 1.4s ease-in-out infinite alternate; }
+
+@keyframes mannequin-breathe { to { transform: scale(1.04); } }
+@keyframes mannequin-jack-arms { to { transform: rotate(45deg) translateY(-16px); } }
+@keyframes mannequin-jack-legs { to { transform: rotate(12deg) translateX(9px); } }
+@keyframes mannequin-half-jack-arms { to { transform: rotate(25deg) translateY(-8px); } }
+@keyframes mannequin-march-left { to { transform: rotate(-24deg) translateY(-13px); } }
+@keyframes mannequin-march-right { to { transform: rotate(24deg) translateY(-13px); } }
+@keyframes mannequin-butt-kick { to { transform: rotate(35deg) translateY(-16px); } }
+@keyframes mannequin-skater { to { transform: translateX(20px) rotate(8deg); } }
+@keyframes mannequin-squat { to { transform: translateY(32px) scaleY(0.9); } }
+@keyframes mannequin-lunge { to { transform: translateX(12px) scaleX(1.06); } }
+@keyframes mannequin-calf-raise { to { transform: translateY(-11px); } }
+@keyframes mannequin-hinge { to { transform: rotate(28deg) translate(15px, 8px); } }
+@keyframes mannequin-wall-arms { to { transform: rotate(-60deg) translateY(-28px); } }
+@keyframes mannequin-row { to { transform: translate(15px, -8px) rotate(-18deg); } }
+@keyframes mannequin-arm-circle-left { to { transform: rotate(360deg); } }
+@keyframes mannequin-arm-circle-right { to { transform: rotate(-360deg); } }
+@keyframes mannequin-chest-open { to { transform: rotate(34deg) translateX(12px); } }
+@keyframes mannequin-neck-roll { 50% { transform: rotate(16deg); } 100% { transform: rotate(-12deg); } }
+@keyframes mannequin-hip-circles { 25% { transform: translateX(8px); } 50% { transform: translateY(6px); } 75% { transform: translateX(-8px); } }
+@keyframes mannequin-side-reach { to { transform: rotate(12deg) translateX(10px); } }
+@keyframes mannequin-twist { to { transform: rotate(13deg); } }
+@keyframes mannequin-leg-swing { to { transform: rotate(-36deg) translateY(-12px); } }
+@keyframes mannequin-pushup { to { transform: translateY(22px) rotate(5deg); } }
+@keyframes mannequin-plank { to { transform: translateY(-5px); } }
+@keyframes mannequin-climber { to { transform: rotate(-38deg) translate(-9px, -18px); } }
+@keyframes mannequin-bridge { to { transform: translateY(-34px) rotate(-8deg); } }
+@keyframes mannequin-child-pose { to { transform: translateX(-12px) scale(0.94); } }
+@keyframes mannequin-cobra { to { transform: rotate(-15deg) translateY(-12px); } }
+@keyframes mannequin-superman { to { transform: translateY(-16px) rotate(-6deg); } }
+@keyframes mannequin-cat-cow { to { transform: scaleY(0.88) translateY(18px); } }
+@keyframes mannequin-side-leg-raise { to { transform: rotate(-45deg) translateY(-16px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .exercise-mannequin *, .exercise-mannequin {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
 /* Línea de tiempo de fases */
 .phases-timeline {
   display: grid;
@@ -1104,13 +1459,13 @@ header h1 {
 .stone-leitmotiv-container {
   margin: 0 0 24px 0;
   padding: 18px 28px;
-  background: linear-gradient(145deg, #222836 0%, #151923 100%);
+  background: linear-gradient(145deg, #f3f4f6 0%, #d1d5db 100%);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid #9ca3af;
   box-shadow: 
-    inset 3px 3px 6px rgba(0, 0, 0, 0.9), 
-    inset -2px -2px 5px rgba(255, 255, 255, 0.08),
-    0 4px 15px rgba(0, 0, 0, 0.4);
+    inset 3px 3px 6px rgba(75, 85, 99, 0.24), 
+    inset -2px -2px 5px rgba(255, 255, 255, 0.8),
+    0 4px 15px rgba(15, 23, 42, 0.12);
   text-align: center;
   display: flex;
   align-items: center;
@@ -1134,14 +1489,13 @@ header h1 {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   /* Efecto de texto bajorrelieve tallado en piedra de granito/plata claro */
-  color: #cbd5e1;
-  background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+  color: #4b5563;
+  background: linear-gradient(180deg, #6b7280 0%, #4b5563 50%, #374151 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 
-    -1px -1px 2px rgba(0, 0, 0, 0.95),
-    1px 1px 2px rgba(255, 255, 255, 0.35),
-    0px 2px 5px rgba(0, 0, 0, 0.9);
-  filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.9));
+    -1px -1px 1px rgba(255, 255, 255, 0.65),
+    1px 1px 1px rgba(55, 65, 81, 0.35);
+  filter: drop-shadow(0px 1px 1px rgba(55, 65, 81, 0.2));
   line-height: 1.4;
 }

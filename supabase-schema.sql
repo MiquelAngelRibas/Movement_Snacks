@@ -31,13 +31,11 @@ drop policy if exists "Permitir lectura publica de usuarios" on public.users;
 create policy "Permitir lectura publica de usuarios" on public.users 
     for select using (true);
 
+-- Los perfiles autorizados se administran directamente desde Supabase.
+-- La aplicación solo puede leerlos; no puede crear, editar ni eliminar usuarios.
 drop policy if exists "Permitir insercion publica de usuarios" on public.users;
-create policy "Permitir insercion publica de usuarios" on public.users 
-    for insert with check (true);
-
 drop policy if exists "Permitir actualizacion publica de usuarios" on public.users;
-create policy "Permitir actualizacion publica de usuarios" on public.users 
-    for update using (true);
+drop policy if exists "Permitir eliminacion publica de usuarios" on public.users;
 
 drop policy if exists "Permitir lectura publica de logs" on public.snacks_log;
 create policy "Permitir lectura publica de logs" on public.snacks_log 

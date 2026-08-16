@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import * as microsoftTeams from '@microsoft/teams-js';
 import confetti from 'canvas-confetti';
-import { exercisesData, EXERCISE_CATEGORIES, categoryLabels, categoryIcons } from './exercisesData';
+import { DAILY_ROUTINES, DAILY_ROUTINES_LIST, categoryLabels, getRoutineBlock } from './dailyPlan';
 import AnatomicalModel from './AnatomicalModel';
+import ExerciseDemo from './ExerciseDemo';
 
 // Utilidad para reproducir tonos audibles mediante la Web Audio API (evita depender de mp3 externos)
 const playAudioTone = (frequency = 440, duration = 0.15) => {
@@ -54,6 +55,12 @@ const isTimeInWindow = (startStr, endStr) => {
   }
 };
 
+const getLocalDateKey = () => new Date().toLocaleDateString('sv-SE');
+
+const getDailyLogStorageKey = (userId) => {
+  return `movement_snacks_logs_${userId}_${getLocalDateKey()}`;
+};
+
 // Agrupar logs por día y calcular el ganador de cada día (para el calendario de campeones)
 const calculateWinnersMap = (logs, users) => {
   const dailyPoints = {};
@@ -68,7 +75,7 @@ const calculateWinnersMap = (logs, users) => {
       dailyPoints[dateStr] = {};
     }
     
-    dailyPoints[dateStr][log.user_id] = (dailyPoints[dateStr][log.user_id] || 0) + (log.points_earned || 10);
+    dailyPoints[dateStr][log.user_id] = (dailyPoints[dateStr][log.user_id] || 0) + (log.points_earned ?? 10);
   });
   
   const dailyWinners = {};
@@ -115,10 +122,26 @@ export default function App() {
   const [usernameInput, setUsernameInput] = useState('');
   const [selectedGradient, setSelectedGradient] = useState('m-grad-1');
 
-  // --- Estados del Catálogo/Galería de Ejercicios ---
+  const getLocalPreferences = (user) => {
+    const stored = localStorage.getItem(`movement_snacks_preferences_${user.id}`);
+    if (!stored) {
+      return {
+        reminder_interval: user.reminder_interval || 45,
+        lunch_start: user.lunch_start || '14:00',
+        lunch_end: user.lunch_end || '16:00'
+      };
+    }
+
+    try {
+      return { ...user, ...JSON.parse(stored) };
+    } catch (error) {
+      console.error('Error al cargar preferencias locales:', error);
+      return user;
+    }
+  };
+
+  // --- Estado del Catálogo de Rutinas ---
   const [showCatalog, setShowCatalog] = useState(false);
-  const [activeCatalogTab, setActiveCatalogTab] = useState('pierna');
-  const [hoveredExercise, setHoveredExercise] = useState(null);
 
   // --- Estados del Temporizador del Ejercicio ---
   const [activeCategory, setActiveCategory] = useState('pierna');
@@ -140,6 +163,17 @@ export default function App() {
   const [dismissedNotificationBanner, setDismissedNotificationBanner] = useState(() => {
     return localStorage.getItem('movement_snacks_notifications_dismissed') === 'true';
   });
+  const [meetingMode, setMeetingMode] = useState(() => {
+    return localStorage.getItem('movement_snacks_meeting_mode') === 'true';
+  });
+
+  const toggleMeetingMode = () => {
+    setMeetingMode((prev) => {
+      const next = !prev;
+      localStorage.setItem('movement_snacks_meeting_mode', String(next));
+      return next;
+    });
+  };
 
   // --- Referencias ---
   const countdownTimerRef = useRef(null);
@@ -210,7 +244,7 @@ export default function App() {
             if (supabase) {
               const { data, error } = await supabase.from('users').select('*').eq('id', teamsId).maybeSingle();
               if (data) {
-                const mergedUser = { ...data };
+                const mergedUser = getLocalPreferences({ ...data });
                 const savedLunch = localStorage.getItem(`lunch_settings_${data.id}`);
                 let localStart = '14:00';
                 let localEnd = '16:00';
@@ -221,8 +255,8 @@ export default function App() {
                     localEnd = end;
                   } catch (e) {}
                 }
-                mergedUser.lunch_start = data.lunch_start || localStart;
-                mergedUser.lunch_end = data.lunch_end || localEnd;
+                mergedUser.lunch_start = mergedUser.lunch_start || localStart;
+                mergedUser.lunch_end = mergedUser.lunch_end || localEnd;
                 localStorage.setItem(`lunch_settings_${data.id}`, JSON.stringify({ start: mergedUser.lunch_start, end: mergedUser.lunch_end }));
                 setCurrentUser(mergedUser);
                 restoreDailyState(mergedUser);
@@ -230,10 +264,8 @@ export default function App() {
                 return;
               }
             }
-            // Si no existe pero estamos en Teams, rellenamos el onboarding con el nombre de Teams
-            setCurrentUser({ id: teamsId, username: context.user.displayName || '', avatar_url: 'm-grad-1', reminder_interval: 45, has_equipment: false });
-            setUsernameInput(context.user.displayName || '');
-            setGameState('onboarding');
+            // Los perfiles se administran fuera de la aplicación.
+            setGameState('access_restricted');
             setLoading(false);
             return;
           }
@@ -248,7 +280,7 @@ export default function App() {
           if (supabase) {
             const { data, error } = await supabase.from('users').select('*').eq('id', localUserId).maybeSingle();
             if (data) {
-              const mergedUser = { ...data };
+              const mergedUser = getLocalPreferences({ ...data });
               const savedLunch = localStorage.getItem(`lunch_settings_${data.id}`);
               let localStart = '14:00';
               let localEnd = '16:00';
@@ -259,8 +291,8 @@ export default function App() {
                   localEnd = end;
                 } catch (e) {}
               }
-              mergedUser.lunch_start = data.lunch_start || localStart;
-              mergedUser.lunch_end = data.lunch_end || localEnd;
+              mergedUser.lunch_start = mergedUser.lunch_start || localStart;
+              mergedUser.lunch_end = mergedUser.lunch_end || localEnd;
               localStorage.setItem(`lunch_settings_${data.id}`, JSON.stringify({ start: mergedUser.lunch_start, end: mergedUser.lunch_end }));
               setCurrentUser(mergedUser);
               restoreDailyState(mergedUser);
@@ -302,14 +334,10 @@ export default function App() {
           }
         }
 
-        if (hasUsers) {
-          setGameState('user_selection');
-        } else {
-          setGameState('onboarding');
-        }
+        setGameState(hasUsers ? 'user_selection' : 'access_restricted');
       } catch (err) {
         console.error('Error al comprobar usuario existente:', err);
-        setGameState('onboarding');
+        setGameState('access_restricted');
       } finally {
         setLoading(false);
       }
@@ -339,6 +367,28 @@ export default function App() {
       localStorage.setItem('movement_snacks_daily_state', JSON.stringify(stateToSave));
     }
   }, [gameState, nextSnackTime, activeCategory, currentUser]);
+
+  // El cambio de fecha cierra la jornada sin crear registros ni otorgar puntos.
+  useEffect(() => {
+    if (!currentUser) return;
+
+    let currentDate = getLocalDateKey();
+    const midnightCheck = setInterval(() => {
+      const newDate = getLocalDateKey();
+      if (newDate === currentDate) return;
+
+      currentDate = newDate;
+      if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+      if (activeSnackTimerRef.current) clearInterval(activeSnackTimerRef.current);
+      localStorage.removeItem('movement_snacks_daily_state');
+      setNextSnackTime(null);
+      setSecondsToNextSnack(0);
+      setSnoozeCount(0);
+      setGameState('waiting_start');
+    }, 60 * 1000);
+
+    return () => clearInterval(midnightCheck);
+  }, [currentUser]);
 
   // --- Carga de Marcador y Feed ---
   useEffect(() => {
@@ -395,8 +445,8 @@ export default function App() {
 
         // Carga de marcador local de respaldo
         const cachedUser = currentUser || { id: 'local_user', username: 'Miquel', avatar_url: 'm-grad-1' };
-        const localLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_today') || '[]');
-        const myPoints = localLogs.filter(l => l.status === 'completed').reduce((sum, l) => sum + (l.points_earned || 10), 0);
+        const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(cachedUser.id)) || '[]');
+        const myPoints = localLogs.filter(l => l.status === 'completed').reduce((sum, l) => sum + (l.points_earned ?? 10), 0);
 
         const localUsers = [
           { id: cachedUser.id, username: cachedUser.username, avatar_url: cachedUser.avatar_url, points: myPoints },
@@ -460,7 +510,7 @@ export default function App() {
     const fetchActivityFeed = async () => {
       if (!supabase) {
         // Carga de feed local de respaldo
-        const localLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_today') || '[]');
+        const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(currentUser.id)) || '[]');
         setActivityFeed(
           localLogs.map((l) => ({
             ...l,
@@ -505,21 +555,12 @@ export default function App() {
         fetchActivityFeed();
         // Disparar un efecto de sonido / notificación si el log es del compañero
         if (payload.new && payload.new.user_id !== currentUser?.id && payload.new.status === 'completed') {
-          playAudioTone(660, 0.4);
+          if (!meetingMode) playAudioTone(660, 0.4);
           const getPartnerUsernameAndNotify = async () => {
-            let partnerName = 'Un compañero';
-            try {
-              const { data } = await supabase.from('users').select('username').eq('id', payload.new.user_id).maybeSingle();
-              if (data?.username) {
-                partnerName = data.username;
-              }
-            } catch (e) {
-              console.error(e);
-            }
             if (payload.new.category === 'finalizado') {
-              showDesktopNotification('¡Jornada Finalizada! 🏁', `¡Tu compañero ${partnerName} ha cerrado su jornada laboral por hoy!`);
+              showDesktopNotification('Jornada finalizada', 'Compañero desconectado');
             } else {
-              showDesktopNotification('¡Compañero Activo!', `¡Tu compañero ${partnerName} ha completado un snack de ${categoryLabels[payload.new.category] || payload.new.category}!`);
+              showDesktopNotification('Compañero activo', 'Pausa activa');
             }
           };
           getPartnerUsernameAndNotify();
@@ -586,6 +627,7 @@ export default function App() {
   };
 
   const showDesktopNotification = (title, body) => {
+    if (meetingMode) return;
     if (notificationsGranted && 'Notification' in window) {
       const notification = new Notification(title, {
         body,
@@ -714,31 +756,24 @@ export default function App() {
 
   // Alerta de Snack Activada (Se cumplió el tiempo)
   const triggerSnackAlert = () => {
-    playAudioTone(523.25, 0.4); // Nota DO5
-    setTimeout(() => playAudioTone(659.25, 0.4), 150); // Nota MI5
-    
-    showDesktopNotification('¡Hora del Snack de Movimiento!', 'Tómate 2 minutos para mover el cuerpo. ¡Haga clic aquí para comenzar!');
-    
-    // Cargar la lista de rutinas de la categoría activa
-    const routines = exercisesData[activeCategory] || exercisesData['pierna'];
-    
-    // Rotar de forma secuencial y determinista entre las rutinas disponibles usando localStorage
-    const lastRoutineIndexKey = `last_routine_idx_${activeCategory}`;
-    const lastIdx = parseInt(localStorage.getItem(lastRoutineIndexKey) || '-1');
-    let nextIdx = (lastIdx + 1) % routines.length;
-
-    // Regla de Protección Estricta: Impedir repetir la misma rutina consecutiva
-    const lastRoutineName = localStorage.getItem('movement_snacks_last_routine_name');
-    if (routines[nextIdx].routineName === lastRoutineName && routines.length > 1) {
-      nextIdx = (nextIdx + 1) % routines.length;
+    if (!meetingMode) {
+      playAudioTone(523.25, 0.4); // Nota DO5
+      setTimeout(() => playAudioTone(659.25, 0.4), 150); // Nota MI5
     }
-
-    localStorage.setItem(lastRoutineIndexKey, nextIdx.toString());
+    
+    showDesktopNotification('Es hora de tu snack', 'Pausa activa');
+    
+    const block = getRoutineBlock(currentUser?.lunch_end);
+    const routines = DAILY_ROUTINES[block];
+    const routineIndexKey = `movement_snacks_routine_index_${currentUser?.id || 'local'}_${block}`;
+    const lastIdx = Number.parseInt(localStorage.getItem(routineIndexKey) || '-1', 10);
+    const nextIdx = (lastIdx + 1) % routines.length;
     const selectedRoutine = routines[nextIdx];
-    localStorage.setItem('movement_snacks_last_routine_name', selectedRoutine.routineName);
+    localStorage.setItem(routineIndexKey, String(nextIdx));
 
     setActiveRoutineName(selectedRoutine.routineName);
     setActivePhases(selectedRoutine.phases);
+    setActiveCategory(selectedRoutine.category);
     setGameState('preview_card');
   };
 
@@ -837,9 +872,9 @@ export default function App() {
     };
 
     // Guardar localmente
-    const localLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_today') || '[]');
+    const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(currentUser.id)) || '[]');
     localLogs.push(logPayload);
-    localStorage.setItem('movement_snacks_logs_today', JSON.stringify(localLogs));
+    localStorage.setItem(getDailyLogStorageKey(currentUser.id), JSON.stringify(localLogs));
 
     if (supabase) {
       try {
@@ -858,20 +893,6 @@ export default function App() {
       setActivityFeed(localLogs.map(l => ({ ...l, users: currentUser })).reverse());
       setUsersList(prev => prev.map(u => u.id === currentUser.id ? { ...u, points: u.points + 10 } : u));
     }
-
-    // Rotar categoría de forma circadiana e inteligente
-    const now = new Date();
-    const currentHour = now.getHours();
-    let nextCategory;
-    if (currentHour >= 15) {
-      nextCategory = 'movilidad';
-    } else {
-      const morningCats = ['pierna', 'empuje', 'tiron', 'potencia'];
-      const currentIdx = morningCats.indexOf(activeCategory);
-      const nextIdx = currentIdx === -1 ? 0 : (currentIdx + 1) % morningCats.length;
-      nextCategory = morningCats[nextIdx];
-    }
-    setActiveCategory(nextCategory);
 
     // Programar el siguiente
     setSnoozeCount(0);
@@ -917,9 +938,9 @@ export default function App() {
     };
 
     // Guardar localmente
-    const localLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_today') || '[]');
+    const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(currentUser.id)) || '[]');
     localLogs.push(logPayload);
-    localStorage.setItem('movement_snacks_logs_today', JSON.stringify(localLogs));
+    localStorage.setItem(getDailyLogStorageKey(currentUser.id), JSON.stringify(localLogs));
 
     if (supabase) {
       try {
@@ -937,20 +958,6 @@ export default function App() {
       setActivityFeed(localLogs.map(l => ({ ...l, users: currentUser })).reverse());
     }
 
-    // Rotar categoría de forma circadiana e inteligente
-    const now = new Date();
-    const currentHour = now.getHours();
-    let nextCategory;
-    if (currentHour >= 15) {
-      nextCategory = 'movilidad';
-    } else {
-      const morningCats = ['pierna', 'empuje', 'tiron', 'potencia'];
-      const currentIdx = morningCats.indexOf(activeCategory);
-      const nextIdx = currentIdx === -1 ? 0 : (currentIdx + 1) % morningCats.length;
-      nextCategory = morningCats[nextIdx];
-    }
-    setActiveCategory(nextCategory);
-
     // Programar el siguiente
     setSnoozeCount(0);
     const minutes = currentUser?.reminder_interval || 45;
@@ -959,66 +966,8 @@ export default function App() {
     setGameState('idle_countdown');
   };
 
-  // Finalizar Jornada laboral por hoy
-  const handleCloseDay = async () => {
-    if (!window.confirm('¿Seguro que quieres dar tu jornada laboral por cerrada hoy?')) {
-      return;
-    }
-
-    // Detener timers
-    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
-    if (activeSnackTimerRef.current) clearInterval(activeSnackTimerRef.current);
-
-    // Reproducir tono de finalización alegre
-    playAudioTone(523.25, 0.15); // DO5
-    setTimeout(() => playAudioTone(659.25, 0.15), 100); // MI5
-    setTimeout(() => playAudioTone(783.99, 0.15), 200); // SOL5
-    setTimeout(() => playAudioTone(1046.50, 0.4), 300); // DO6
-
-    // Efecto visual de celebración
-    confetti({
-      particleCount: 80,
-      spread: 60,
-      origin: { y: 0.6 }
-    });
-
-    const logPayload = {
-      id: Math.random().toString(36).substr(2, 9),
-      user_id: currentUser.id,
-      category: 'finalizado',
-      exercises_performed: ['Fin de jornada'],
-      status: 'completed',
-      points_earned: 0,
-      created_at: new Date().toISOString()
-    };
-
-    // Guardar localmente
-    const localLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_today') || '[]');
-    localLogs.push(logPayload);
-    localStorage.setItem('movement_snacks_logs_today', JSON.stringify(localLogs));
-
-    if (supabase) {
-      try {
-        await supabase.from('snacks_log').insert({
-          user_id: logPayload.user_id,
-          category: logPayload.category,
-          exercises_performed: logPayload.exercises_performed,
-          status: logPayload.status,
-          points_earned: logPayload.points_earned
-        });
-      } catch (err) {
-        console.error('Error al guardar log de fin de jornada en Supabase:', err);
-      }
-    } else {
-      setActivityFeed(localLogs.map(l => ({ ...l, users: currentUser })).reverse());
-    }
-
-    // Cambiar estado a esperando inicio de jornada para mañana
-    setGameState('waiting_start');
-  };
-
   const handleSelectUser = (user) => {
-    let mergedUser = { ...user };
+    let mergedUser = getLocalPreferences({ ...user });
     const savedLunch = localStorage.getItem(`lunch_settings_${user.id}`);
     if (savedLunch) {
       try {
@@ -1141,17 +1090,8 @@ export default function App() {
     const minutes = currentUser?.reminder_interval || 45;
     const targetTime = new Date(Date.now() + minutes * 60 * 1000);
     
-    // Decidir la categoría inicial de forma circadiana
-    const now = new Date();
-    const currentHour = now.getHours();
-    let initialCategory;
-    if (currentHour >= 15) {
-      initialCategory = 'movilidad';
-    } else {
-      const morningCats = ['pierna', 'empuje', 'tiron'];
-      initialCategory = morningCats[Math.floor(Math.random() * morningCats.length)];
-    }
-    setActiveCategory(initialCategory);
+    const block = getRoutineBlock(currentUser?.lunch_end);
+    setActiveCategory(block === 'morning' ? 'potencia' : 'movilidad');
 
     setNextSnackTime(targetTime);
     setSecondsToNextSnack(minutes * 60);
@@ -1161,6 +1101,38 @@ export default function App() {
   // Modificar perfil desde el panel
   const handleEditProfile = () => {
     setGameState('onboarding');
+  };
+
+  const handleSavePreferences = (e) => {
+    e.preventDefault();
+    const reminderInterval = Number(e.target.interval.value);
+    const lunchStart = e.target.lunch_start.value;
+    const lunchEnd = e.target.lunch_end.value;
+    const updatedUser = {
+      ...currentUser,
+      reminder_interval: reminderInterval,
+      lunch_start: lunchStart,
+      lunch_end: lunchEnd
+    };
+
+    localStorage.setItem(`movement_snacks_preferences_${currentUser.id}`, JSON.stringify({
+      reminder_interval: reminderInterval,
+      lunch_start: lunchStart,
+      lunch_end: lunchEnd
+    }));
+    localStorage.setItem(`lunch_settings_${currentUser.id}`, JSON.stringify({ start: lunchStart, end: lunchEnd }));
+    localStorage.setItem('movement_snacks_profile', JSON.stringify(updatedUser));
+    setCurrentUser(updatedUser);
+
+    if (gameState === 'settings' && nextSnackTime) {
+      const targetTime = new Date(Date.now() + reminderInterval * 60 * 1000);
+      setNextSnackTime(targetTime);
+      setSecondsToNextSnack(reminderInterval * 60);
+      setGameState('idle_countdown');
+      return;
+    }
+
+    setGameState('waiting_start');
   };
 
   // Formatear segundos a MM:SS
@@ -1194,7 +1166,7 @@ export default function App() {
             ¿Quién entrena hoy? 💻
           </h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', fontSize: '0.9rem', textAlign: 'center', lineHeight: '1.4' }}>
-            Selecciona tu usuario para reanudar tu jornada de snacks o crea un nuevo perfil.
+            Selecciona tu perfil una sola vez en este navegador. Quedará vinculado para los siguientes accesos.
           </p>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '20px', marginBottom: '16px' }}>
@@ -1214,21 +1186,6 @@ export default function App() {
               </div>
             ))}
             
-            {/* Tarjeta de Crear Nuevo */}
-            <div 
-              className="user-select-card new-user"
-              onClick={() => {
-                setCurrentUser(null);
-                setGameState('onboarding');
-              }}
-            >
-              <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'var(--bg-secondary)', border: '2px dashed var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', color: 'var(--text-secondary)', margin: '0 auto 12px auto' }}>
-                +
-              </div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
-                Crear Perfil
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -1331,6 +1288,53 @@ export default function App() {
     );
   }
 
+  if (gameState === 'access_restricted') {
+    return (
+      <div className="app-container" style={{ maxWidth: '600px', margin: '40px auto' }}>
+        <header style={{ justifyContent: 'center', marginBottom: '24px' }}><h1>Snacks de Movimiento</h1></header>
+        <div className="db-card" style={{ textAlign: 'center', padding: '40px 32px' }}>
+          <h2 className="db-card-title">Perfil no autorizado</h2>
+          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.5' }}>Los perfiles se administran fuera de la aplicación. Solicita al responsable que dé de alta tu usuario.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameState === 'settings') {
+    return (
+      <div className="app-container" style={{ maxWidth: '600px', margin: '40px auto' }}>
+        <header><h1>Snacks de Movimiento</h1></header>
+        <div className="db-card">
+          <div className="db-card-header">
+            <h2 className="db-card-title">Horario y recordatorios</h2>
+          </div>
+          <form onSubmit={handleSavePreferences} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div className="form-group">
+              <label htmlFor="interval">Tiempo entre snacks</label>
+              <select id="interval" name="interval" className="form-control" defaultValue={currentUser?.reminder_interval || 45}>
+                <option value="30">Cada 30 minutos</option>
+                <option value="45">Cada 45 minutos</option>
+                <option value="60">Cada hora</option>
+              </select>
+            </div>
+            <div className="form-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label htmlFor="lunch_start">Inicio almuerzo</label>
+                <input type="time" id="lunch_start" name="lunch_start" className="form-control" defaultValue={currentUser?.lunch_start || '14:00'} required />
+              </div>
+              <div>
+                <label htmlFor="lunch_end">Fin almuerzo</label>
+                <input type="time" id="lunch_end" name="lunch_end" className="form-control" defaultValue={currentUser?.lunch_end || '16:00'} required />
+              </div>
+            </div>
+            <button type="submit" className="db-btn db-btn-accent">Guardar ajustes</button>
+            <button type="button" className="db-btn db-btn-secondary" onClick={() => setGameState(nextSnackTime ? 'idle_countdown' : 'waiting_start')}>Cancelar</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   const isWorkoutMode = gameState === 'preview_card' || gameState === 'active_timer';
 
   return (
@@ -1367,19 +1371,26 @@ export default function App() {
             </div>
             <span>{currentUser?.username}</span>
           </div>
-          {gameState !== 'onboarding' && gameState !== 'waiting_start' && (
-            <button className="db-btn" style={{ padding: '8px 16px', fontSize: '0.75rem', backgroundColor: '#e11d48', color: '#fff', border: 'none' }} onClick={handleCloseDay}>
-              Finalizar Día 🏁
-            </button>
-          )}
+          <button 
+            className="db-btn db-btn-secondary" 
+            style={{ 
+              padding: '8px 16px', 
+              fontSize: '0.75rem', 
+              backgroundColor: meetingMode ? 'rgba(234, 88, 12, 0.15)' : 'transparent',
+              borderColor: meetingMode ? '#ea580c' : 'var(--border-color)',
+              color: meetingMode ? '#ea580c' : 'var(--text-primary)',
+              fontWeight: meetingMode ? 700 : 400
+            }} 
+            onClick={toggleMeetingMode}
+            title={meetingMode ? 'Notificaciones silenciadas durante reuniones' : 'Silenciar notificaciones durante reuniones'}
+          >
+            {meetingMode ? '🤫 Modo Reunión (Silenciado)' : '🔔 Notificaciones'}
+          </button>
           <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem', borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={() => setShowCatalog(true)}>
-            Ver Ejercicios 🎥
+            Ver Plan Diario
           </button>
-          <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem' }} onClick={handleLogOutUser}>
-            Cambiar Usuario 👤
-          </button>
-          <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem' }} onClick={handleEditProfile}>
-            Ajustes de Perfil
+          <button className="db-btn db-btn-secondary" style={{ padding: '8px 16px', fontSize: '0.75rem' }} onClick={() => setGameState('settings')}>
+            Horario y recordatorios
           </button>
         </div>
       </header>
@@ -1404,29 +1415,14 @@ export default function App() {
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {/* Carrusel de fotogramas del plan de ejercicio con video de YouTube sin cookies */}
+                {/* Vista previa con demostraciones animadas locales */}
                 <div className="filmstrip-container">
                   {activePhases.map((phase, idx) => (
                     <div key={idx} className="filmstrip-card">
                       <span className="filmstrip-card-title">Fase {idx + 1}</span>
                       
                       <div className="filmstrip-video-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '8px', overflow: 'hidden' }}>
-                        {!phase.youtubeId ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '2.5rem' }}>🌬️</span>
-                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Respiración</span>
-                          </div>
-                        ) : (
-                          <iframe
-                            width="100%"
-                            height="100%"
-                            src={`https://www.youtube.com/embed/${phase.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${phase.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${phase.startTime ? `&start=${phase.startTime}` : ''}`}
-                            title={`Previo ${idx + 1}`}
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            style={{ borderRadius: '8px', width: '100%', height: '100%', pointerEvents: 'none' }}
-                          />
-                        )}
+                        <ExerciseDemo phase={phase} compact />
                       </div>
 
                       <span className="filmstrip-card-desc">{phase.name}</span>
@@ -1447,7 +1443,7 @@ export default function App() {
                       Categoría activa: <span style={{ color: 'var(--accent)' }}>{categoryLabels[activeCategory].toUpperCase()}</span>
                     </p>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '8px' }}>
-                      Vídeos demostrativos optimizados con privacidad integrada (sin cookies de rastreo).
+                      Demostraciones animadas locales para seguir cada fase sin depender de vídeos externos.
                     </p>
                   </div>
                   
@@ -1489,12 +1485,12 @@ export default function App() {
                     </div>
                   </div>
                   <span style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 800, letterSpacing: '0.05em' }}>
-                    {inTransition ? 'PREPARACIÓN' : `FASE ${currentPhaseIndex + 1} DE 5`}
+                    {inTransition ? 'PREPARACIÓN' : `FASE ${currentPhaseIndex + 1} DE ${activePhases.length}`}
                   </span>
                 </div>
 
                 <div className="active-video-widget">
-                  <div className="active-video-label">{inTransition ? 'Prepárate para el siguiente movimiento' : 'Demostración en Vídeo'}</div>
+                  <div className="active-video-label">{inTransition ? 'Prepárate para el siguiente movimiento' : 'Demostración animada'}</div>
                   <div className="active-video-container" style={{ position: 'relative', width: '100%', height: '460px' }}>
                     {inTransition ? (
                       <div style={{ 
@@ -1532,19 +1528,8 @@ export default function App() {
                           </span>
                         </div>
                       </div>
-                    ) : currentPhaseIndex === 4 ? (
-                      <BreathingPacer />
                     ) : (
-                      <iframe
-                        key={activePhases[currentPhaseIndex]?.youtubeId}
-                        width="100%"
-                        height="100%"
-                        src={`https://www.youtube.com/embed/${activePhases[currentPhaseIndex]?.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${activePhases[currentPhaseIndex]?.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${activePhases[currentPhaseIndex]?.startTime ? `&start=${activePhases[currentPhaseIndex].startTime}` : ''}`}
-                        title="Guía del Ejercicio"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        style={{ borderRadius: '8px', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                      />
+                      <ExerciseDemo phase={activePhases[currentPhaseIndex]} />
                     )}
                   </div>
                 </div>
@@ -1747,101 +1732,35 @@ export default function App() {
         </div>
       )}
 
-      {/* MODAL DE CATÁLOGO / GALERÍA DE EJERCICIOS */}
+      {/* MODAL DEL PLAN DE RUTINAS */}
       {showCatalog && (
         <div className="catalog-modal-overlay" onClick={() => setShowCatalog(false)}>
           <div className="catalog-modal" onClick={(e) => e.stopPropagation()}>
             <div className="catalog-header">
-              <h2 className="catalog-header-title">Catálogo y Galería de Ejercicios 🎥</h2>
+              <h2 className="catalog-header-title">Plan diario de {DAILY_ROUTINES_LIST.length} rutinas</h2>
               <button className="catalog-close-btn" onClick={() => setShowCatalog(false)}>✕</button>
             </div>
             
-            {/* Selector de pestañas por categoría */}
-            <div className="catalog-tab-bar" style={{ padding: '20px 32px 12px 32px', borderBottom: '1px solid var(--border-color)', background: '#ffffff', flexShrink: 0 }}>
-              {EXERCISE_CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  className={`catalog-tab-btn ${activeCatalogTab === cat ? 'active' : ''}`}
-                  onClick={() => {
-                    setActiveCatalogTab(cat);
-                    setHoveredExercise(null); // Resetear reproducción activa
-                  }}
-                >
-                  {categoryIcons[cat]} {categoryLabels[cat].split(' ')[0]}
-                </button>
-              ))}
-            </div>
-            
             <div className="catalog-content" style={{ paddingTop: '16px' }}>
-              {/* Grid de ejercicios únicos de la categoría activa */}
               <div className="catalog-grid">
-                {(() => {
-                  const uniqueExercises = [];
-                  const seenNames = new Set();
-                  const routines = exercisesData[activeCatalogTab] || [];
-                  
-                  routines.forEach(r => {
-                    r.phases.forEach(p => {
-                      // Filtrar fase de enfriamiento sin vídeo y nombres duplicados
-                      if (p.phase === 5 || !p.youtubeId) return;
-                      if (!seenNames.has(p.name)) {
-                        seenNames.add(p.name);
-                        uniqueExercises.push(p);
-                      }
-                    });
-                  });
-
-                  return uniqueExercises.map((ex) => {
-                    const isHovered = hoveredExercise === ex.name;
-                    return (
-                      <div 
-                        key={ex.name} 
-                        className="exercise-catalog-card"
-                        onMouseEnter={() => setHoveredExercise(ex.name)}
-                        onMouseLeave={() => setHoveredExercise(null)}
-                      >
-                        <div className="exercise-video-thumbnail-container">
-                          {isHovered ? (
-                            <iframe
-                              width="100%"
-                              height="100%"
-                              src={`https://www.youtube.com/embed/${ex.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${ex.youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1${ex.startTime ? `&start=${ex.startTime}` : ''}`}
-                              title={ex.name}
-                              frameBorder="0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
-                            />
-                          ) : (
-                            <>
-                              <img 
-                                src={`https://img.youtube.com/vi/${ex.youtubeId}/0.jpg`} 
-                                alt={ex.name}
-                                className="exercise-video-thumbnail-img"
-                                loading="lazy"
-                              />
-                              <div className="exercise-play-overlay">
-                                <div className="exercise-play-btn">▶</div>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                        
-                        <div className="exercise-card-info">
-                          <h3 className="exercise-card-title">{ex.name}</h3>
-                          <p className="exercise-card-desc">{ex.desc}</p>
-                          <div className="exercise-badge-row">
-                            {ex.muscles.split(',').map((mus, mIdx) => (
-                              <span key={mIdx} className="exercise-badge">
-                                {mus.trim()}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+                {DAILY_ROUTINES_LIST.map((routine, index) => (
+                  <div key={routine.id} className="exercise-catalog-card">
+                    <div className="exercise-video-thumbnail-container">
+                      <ExerciseDemo phase={routine.phases[0]} compact />
+                    </div>
+                    <div className="exercise-card-info">
+                      <h3 className="exercise-card-title">{routine.routineName}</h3>
+                      <p className="exercise-card-desc">
+                        {index < 6 ? 'Antes del almuerzo' : 'Después del almuerzo'} · {categoryLabels[routine.category]}
+                      </p>
+                      <div className="exercise-badge-row">
+                        {routine.phases.slice(0, 4).map((phase) => (
+                          <span key={phase.name} className="exercise-badge">{phase.name}</span>
+                        ))}
                       </div>
-                    );
-                  });
-                })()}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1854,48 +1773,6 @@ export default function App() {
     </div>
   );
 }
-
-// Componente de Respiración Guiada para la fase final del Snack (Cooldown)
-function BreathingPacer() {
-  const [breathState, setBreathState] = useState('inhale'); // 'inhale' | 'hold' | 'exhale'
-  const [seconds, setSeconds] = useState(4);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSeconds(prev => {
-        if (prev <= 1) {
-          if (breathState === 'inhale') {
-            setBreathState('hold');
-            return 2; // Mantener el aire por 2 segundos
-          } else if (breathState === 'hold') {
-            setBreathState('exhale');
-            return 4; // Exhalar por 4 segundos
-          } else {
-            setBreathState('inhale');
-            return 4; // Inhalar por 4 segundos
-          }
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [breathState]);
-
-  return (
-    <div className="breathing-pacer-container">
-      <div className={`breathing-circle ${breathState}`} />
-      <div className="breathing-text">
-        {breathState === 'inhale' && 'Inhala Despacio...'}
-        {breathState === 'hold' && 'Mantén el Aire...'}
-        {breathState === 'exhale' && 'Exhala Suavemente...'}
-      </div>
-      <div className="breathing-subtext">Sigue el ritmo para bajar pulsaciones</div>
-    </div>
-  );
-}
-
-
 
 // Componente del Calendario de Campeones Diarios (Histórico)
 function CalendarWidget({ dailyWinners, getMonogram }) {
