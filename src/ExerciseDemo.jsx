@@ -47,7 +47,7 @@ function ChallengeVisual({ visual, compact }) {
 export default function ExerciseDemo({ phase, compact = false }) {
   const [hasAssetError, setHasAssetError] = useState(false);
   const assetName = assetNames[phase.name] || phase.name;
-  const imagePath = `/exercises/${encodeURIComponent(assetName)}/animation.gif`;
+  const imagePath = `./exercises/${encodeURIComponent(assetName)}/animation.gif`;
 
   if (phase.motion === 'breathing') {
     return <BreathingVisual compact={compact} />;
