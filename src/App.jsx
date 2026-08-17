@@ -1278,8 +1278,8 @@ export default function App() {
     );
   }
 
-  // PANTALLA 0: SELECCIÓN DE USUARIO
-  if (gameState === 'user_selection') {
+  // PANTALLA 0: SELECCIÓN DE USUARIO (Si no hay usuario activo o se solicita cambiar)
+  if (gameState === 'user_selection' || !currentUser) {
     return (
       <div className="app-container" style={{ maxWidth: '600px', margin: '40px auto' }}>
         <header style={{ justifyContent: 'center', marginBottom: '24px' }}>
@@ -1291,26 +1291,40 @@ export default function App() {
             ¿Quién entrena hoy? 💻
           </h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', fontSize: '0.9rem', textAlign: 'center', lineHeight: '1.4' }}>
-            Selecciona tu perfil una sola vez en este navegador. Quedará vinculado para los siguientes accesos.
+            Selecciona tu perfil para vincular tus snacks y puntuación en este navegador.
           </p>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '20px', marginBottom: '16px' }}>
-            {usersList.map((user) => (
-              <div 
-                key={user.id} 
-                className="user-select-card"
-                onClick={() => handleSelectUser(user)}
-                style={{ position: 'relative' }}
-              >
-                <div className={`monogram ${user.avatar_url || 'm-grad-1'}`} style={{ width: '60px', height: '60px', fontSize: '1.8rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, margin: '0 auto 12px auto', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }}>
-                  {getMonogram(user.username)}
-                </div>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
-                  {user.username}
-                </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '20px', marginBottom: '16px' }}>
+            {usersList.length === 0 ? (
+              <div style={{ textAlign: 'center', gridColumn: '1 / -1', padding: '20px' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Cargando usuarios del equipo...</p>
               </div>
-            ))}
-            
+            ) : (
+              usersList.map((user) => (
+                <div 
+                  key={user.id} 
+                  className="user-select-card"
+                  onClick={() => handleSelectUser(user)}
+                  style={{ 
+                    position: 'relative', 
+                    cursor: 'pointer', 
+                    padding: '20px 16px', 
+                    borderRadius: '12px', 
+                    border: '1.5px solid var(--border-color)', 
+                    textAlign: 'center', 
+                    transition: 'all 0.2s ease', 
+                    background: 'var(--bg-card)' 
+                  }}
+                >
+                  <div className={`monogram ${user.avatar_url || 'm-grad-1'}`} style={{ width: '60px', height: '60px', fontSize: '1.8rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, margin: '0 auto 12px auto', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }}>
+                    {getMonogram(user.username)}
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
+                    {user.username}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
