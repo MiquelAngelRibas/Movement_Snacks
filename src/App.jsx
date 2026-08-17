@@ -1092,57 +1092,31 @@ export default function App() {
   };
 
   const handleSelectUser = (user) => {
-    let mergedUser = getLocalPreferences({ ...user });
-    const savedLunch = localStorage.getItem(`lunch_settings_${user.id}`);
-    if (savedLunch) {
-      try {
-        const { start, end } = JSON.parse(savedLunch);
-        mergedUser.lunch_start = start;
-        mergedUser.lunch_end = end;
-      } catch (e) {
-        console.error(e);
+    try {
+      const mergedUser = getLocalPreferences({ ...user });
+      currentUserRef.current = mergedUser;
+      setCurrentUser(mergedUser);
+      localStorage.setItem('movement_snacks_user_id', mergedUser.id);
+      localStorage.setItem('movement_snacks_profile', JSON.stringify(mergedUser));
+
+      const { routine } = getCurrentRoutine(mergedUser);
+      if (routine) {
+        setActiveRoutineName(routine.routineName);
+        setActivePhases(routine.phases || []);
+        setActiveCategory(routine.category || 'pierna');
       }
-    } else {
-      mergedUser.lunch_start = '14:00';
-      mergedUser.lunch_end = '16:00';
+
+      // Iniciar el temporizador diario directamente
+      const minutes = mergedUser.reminder_interval || 45;
+      const targetTime = new Date(Date.now() + minutes * 60 * 1000);
+      setNextSnackTime(targetTime);
+      setSecondsToNextSnack(minutes * 60);
+      setSnoozeCount(0);
+      setGameState('idle_countdown');
+    } catch (err) {
+      console.error('Error al seleccionar usuario:', err);
+      setGameState('idle_countdown');
     }
-    
-    setCurrentUser(mergedUser);
-    localStorage.setItem('movement_snacks_user_id', mergedUser.id);
-    localStorage.setItem('movement_snacks_profile', JSON.stringify(mergedUser));
-    
-    // Restaurar su estado del recordatorio diario
-    const todayStr = new Date().toLocaleDateString('sv-SE');
-    const cachedState = localStorage.getItem('movement_snacks_daily_state');
-    if (cachedState) {
-      try {
-        const parsed = JSON.parse(cachedState);
-        if (parsed.date === todayStr && parsed.gameState) {
-          if (parsed.gameState === 'active_timer' || parsed.gameState === 'preview_card') {
-            const minutes = user?.reminder_interval || 45;
-            const targetTime = new Date(Date.now() + minutes * 60 * 1000);
-            setGameState('idle_countdown');
-            setNextSnackTime(targetTime);
-            setSecondsToNextSnack(minutes * 60);
-          } else {
-            setGameState(parsed.gameState);
-            if (parsed.nextSnackTime) {
-              const nextTime = new Date(parsed.nextSnackTime);
-              setNextSnackTime(nextTime);
-              const remainingSecs = Math.max(0, Math.floor((nextTime.getTime() - Date.now()) / 1000));
-              setSecondsToNextSnack(remainingSecs);
-            }
-          }
-          if (parsed.activeCategory) {
-            setActiveCategory(parsed.activeCategory);
-          }
-          return;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    setGameState('waiting_start');
   };
 
   // Eliminar usuario
