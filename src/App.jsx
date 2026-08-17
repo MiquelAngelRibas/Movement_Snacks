@@ -564,7 +564,7 @@ export default function App() {
 
       if (remaining <= 0) {
         if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
-        document.title = '⏰ ¡Hora de tu Snack!';
+        document.title = '⏰ Hora de moverse';
         triggerSnackAlert();
       }
     };
@@ -614,15 +614,13 @@ export default function App() {
     }
   };
 
-  const showDesktopNotification = (title, body = '') => {
+  const showDesktopNotification = (title) => {
     if (meetingMode) return;
     if (notificationsGranted && 'Notification' in window) {
-      const options = {
+      const notification = new Notification(title, {
         icon: '/favicon.ico',
         requireInteraction: false
-      };
-      if (body) options.body = body;
-      const notification = new Notification(title, options);
+      });
       // Traer la ventana de la app al frente al hacer clic
       notification.onclick = () => {
         window.focus();
