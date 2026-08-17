@@ -110,7 +110,16 @@ const DEFAULT_GRADIENTS = [
 
 export default function App() {
   // --- Estados de Usuario ---
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const cached = localStorage.getItem('movement_snacks_profile');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.id) return parsed;
+      }
+    } catch (e) {}
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
   // --- Estados del Juego / Flujo ---
@@ -280,40 +289,50 @@ export default function App() {
         }
 
         // 2. Fallback a LocalStorage en navegador estándar
-        const localUserId = localStorage.getItem('movement_snacks_user_id');
+        const localUserId = localStorage.getItem('movement_snacks_user_id') || currentUser?.id;
         if (localUserId) {
           if (supabase) {
-            const { data, error } = await supabase.from('users').select('*').eq('id', localUserId).maybeSingle();
-            if (data) {
-              const mergedUser = getLocalPreferences({ ...data });
-              const savedLunch = localStorage.getItem(`lunch_settings_${data.id}`);
-              let localStart = '14:00';
-              let localEnd = '16:00';
-              if (savedLunch) {
-                try {
-                  const { start, end } = JSON.parse(savedLunch);
-                  localStart = start;
-                  localEnd = end;
-                } catch (e) {}
+            try {
+              const { data, error } = await supabase.from('users').select('*').eq('id', localUserId).maybeSingle();
+              if (data) {
+                const mergedUser = getLocalPreferences({ ...data });
+                const savedLunch = localStorage.getItem(`lunch_settings_${data.id}`);
+                let localStart = '14:00';
+                let localEnd = '16:00';
+                if (savedLunch) {
+                  try {
+                    const { start, end } = JSON.parse(savedLunch);
+                    localStart = start;
+                    localEnd = end;
+                  } catch (e) {}
+                }
+                mergedUser.lunch_start = mergedUser.lunch_start || localStart;
+                mergedUser.lunch_end = mergedUser.lunch_end || localEnd;
+                localStorage.setItem(`lunch_settings_${data.id}`, JSON.stringify({ start: mergedUser.lunch_start, end: mergedUser.lunch_end }));
+                localStorage.setItem('movement_snacks_user_id', mergedUser.id);
+                localStorage.setItem('movement_snacks_profile', JSON.stringify(mergedUser));
+                setCurrentUser(mergedUser);
+                restoreDailyState(mergedUser);
+                setLoading(false);
+                return;
               }
-              mergedUser.lunch_start = mergedUser.lunch_start || localStart;
-              mergedUser.lunch_end = mergedUser.lunch_end || localEnd;
-              localStorage.setItem(`lunch_settings_${data.id}`, JSON.stringify({ start: mergedUser.lunch_start, end: mergedUser.lunch_end }));
-              setCurrentUser(mergedUser);
-              restoreDailyState(mergedUser);
-              setLoading(false);
-              return;
+            } catch (err) {
+              console.error('Error al obtener usuario de Supabase:', err);
             }
           }
           
           // Si no hay Supabase o no se encontró en DB, recuperamos el perfil local guardado
           const cachedUser = localStorage.getItem('movement_snacks_profile');
           if (cachedUser) {
-            const parsed = JSON.parse(cachedUser);
-            setCurrentUser(parsed);
-            restoreDailyState(parsed);
-            setLoading(false);
-            return;
+            try {
+              const parsed = JSON.parse(cachedUser);
+              if (parsed && parsed.id) {
+                setCurrentUser(parsed);
+                restoreDailyState(parsed);
+                setLoading(false);
+                return;
+              }
+            } catch (e) {}
           }
         }
 
@@ -558,17 +577,18 @@ export default function App() {
       .on('postgres_changes', { event: 'INSERT', table: 'snacks_log' }, (payload) => {
         fetchLeaderboard();
         fetchActivityFeed();
-        // Disparar un efecto de sonido / notificación si el log es del compañero
-        if (payload.new && payload.new.user_id !== currentUser?.id && payload.new.status === 'completed') {
+
+        // Obtener el ID del usuario actual de forma segura
+        const myUserId = currentUserRef.current?.id || currentUser?.id || localStorage.getItem('movement_snacks_user_id');
+
+        // Disparar sonido y notificación ÚNICAMENTE si el ejercicio lo completó otro compañero
+        if (payload.new && payload.new.user_id && myUserId && payload.new.user_id !== myUserId && payload.new.status === 'completed') {
           if (!meetingMode) playAudioTone(660, 0.4);
-          const getPartnerUsernameAndNotify = async () => {
-            if (payload.new.category === 'finalizado') {
-              showDesktopNotification('Jornada finalizada', 'Compañero desconectado');
-            } else {
-              showDesktopNotification('Compañero activo', 'Pausa activa');
-            }
-          };
-          getPartnerUsernameAndNotify();
+          if (payload.new.category === 'finalizado') {
+            showDesktopNotification('Jornada finalizada', 'Compañero desconectado');
+          } else {
+            showDesktopNotification('Compañero activo', 'Pausa activa');
+          }
         }
       })
       .subscribe();
@@ -761,10 +781,12 @@ export default function App() {
 
   // --- Gestión de la Rutina Actual y Avance Diario ---
   const getCurrentRoutine = useCallback((user) => {
-    const block = getRoutineBlock(user?.lunch_end);
+    const activeUser = user || currentUserRef.current || currentUser;
+    const userId = activeUser?.id || localStorage.getItem('movement_snacks_user_id') || 'local';
+    const block = getRoutineBlock(activeUser?.lunch_end);
     const routines = DAILY_ROUTINES[block];
     const todayKey = getLocalDateKey();
-    const completedIndexKey = `movement_snacks_completed_idx_${user?.id || 'local'}_${todayKey}_${block}`;
+    const completedIndexKey = `movement_snacks_completed_idx_${userId}_${todayKey}_${block}`;
     const lastCompleted = Number.parseInt(localStorage.getItem(completedIndexKey) ?? '-1', 10);
     const currentIdx = (lastCompleted + 1) % routines.length;
     return {
@@ -778,12 +800,13 @@ export default function App() {
   }, []);
 
   const advanceRoutine = useCallback(() => {
-    if (!currentUser) return;
-    const { block, currentIdx } = getCurrentRoutine(currentUser);
+    const activeUser = currentUserRef.current || currentUser;
+    const userId = activeUser?.id || localStorage.getItem('movement_snacks_user_id') || 'local';
+    const { block, currentIdx } = getCurrentRoutine(activeUser);
     const todayKey = getLocalDateKey();
-    const completedIndexKey = `movement_snacks_completed_idx_${currentUser.id}_${todayKey}_${block}`;
+    const completedIndexKey = `movement_snacks_completed_idx_${userId}_${todayKey}_${block}`;
     localStorage.setItem(completedIndexKey, String(currentIdx));
-  }, [currentUser, getCurrentRoutine]);
+  }, [getCurrentRoutine]);
 
   // Alerta de Snack Activada (Se cumplió el tiempo o clic en Comenzar)
   const triggerSnackAlert = () => {
@@ -1467,11 +1490,16 @@ export default function App() {
       <header>
         <h1>Snacks de Movimiento</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div className="user-tag">
+          <div 
+            className="user-tag" 
+            onClick={() => setGameState('user_selection')} 
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} 
+            title="Haz clic para cambiar de usuario"
+          >
             <div className={`monogram ${currentUser?.avatar_url || 'm-grad-1'}`}>
               {getMonogram(currentUser?.username)}
             </div>
-            <span>{currentUser?.username}</span>
+            <span style={{ fontWeight: 600 }}>{currentUser?.username || 'Seleccionar Usuario'}</span>
           </div>
           <button 
             className="db-btn db-btn-secondary" 
