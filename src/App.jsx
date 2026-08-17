@@ -502,9 +502,16 @@ export default function App() {
     // Suscripción Realtime a Supabase para notificaciones instantáneas
     const logSubscription = supabase
       .channel('table-db-changes')
-      .on('postgres_changes', { event: 'INSERT', table: 'snacks_log' }, () => {
+      .on('postgres_changes', { event: 'INSERT', table: 'snacks_log' }, (payload) => {
         fetchLeaderboard();
         fetchActivityFeed();
+
+        const myUserId = currentUserRef.current?.id || currentUser?.id || localStorage.getItem('movement_snacks_user_id');
+
+        // Notificación discreta ÚNICAMENTE si el ejercicio lo completó el compañero
+        if (payload.new && payload.new.user_id && myUserId && payload.new.user_id !== myUserId && payload.new.status === 'completed') {
+          showDesktopNotification('Compañero activo');
+        }
       })
       .subscribe();
 
@@ -607,14 +614,15 @@ export default function App() {
     }
   };
 
-  const showDesktopNotification = (title, body) => {
+  const showDesktopNotification = (title, body = '') => {
     if (meetingMode) return;
     if (notificationsGranted && 'Notification' in window) {
-      const notification = new Notification(title, {
-        body,
+      const options = {
         icon: '/favicon.ico',
-        requireInteraction: true
-      });
+        requireInteraction: false
+      };
+      if (body) options.body = body;
+      const notification = new Notification(title, options);
       // Traer la ventana de la app al frente al hacer clic
       notification.onclick = () => {
         window.focus();
@@ -777,7 +785,7 @@ export default function App() {
       setTimeout(() => playAudioTone(659.25, 0.4), 150); // Nota MI5
     }
     
-    showDesktopNotification('Hora de moverse', routine?.routineName ? `Toca hacer: ${routine.routineName}` : 'Pausa activa de 2 minutos');
+    showDesktopNotification('Hora de moverse');
   };
 
   // Comenzar el ejercicio real (Terminar vista previa e iniciar inmediatamente sin tiempo extra)
