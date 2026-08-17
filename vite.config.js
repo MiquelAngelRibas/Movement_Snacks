@@ -8,7 +8,8 @@ export default defineConfig({
   server: {
     port: 5180,
     watch: {
-      usePolling: true
+      usePolling: true,
+      ignored: ['**/node_modules/**', '**/public/**', '**/dist/**', '**/.git/**']
     }
   }
 })
