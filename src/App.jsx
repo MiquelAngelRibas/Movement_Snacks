@@ -108,14 +108,6 @@ const DEFAULT_GRADIENTS = [
   'm-grad-7'
 ];
 
-const DEFAULT_FALLBACK_USER = {
-  id: 'miquel.ribas@aubadcs.com',
-  username: 'Miquel Àngel',
-  avatar_url: 'm-grad-1',
-  reminder_interval: 30,
-  lunch_start: '13:00',
-  lunch_end: '14:00'
-};
 
 export default function App() {
   // --- Estados de Usuario ---
@@ -393,7 +385,8 @@ export default function App() {
 
   // --- Carga de Marcador y Feed ---
   const fetchLeaderboard = useCallback(async () => {
-    const activeUser = currentUser || DEFAULT_FALLBACK_USER;
+    const activeUser = currentUser || currentUserRef.current;
+    if (!activeUser && !supabase) return;
 
     if (!supabase) {
       // Carga de marcador local de respaldo
@@ -888,8 +881,9 @@ export default function App() {
 
     if (activeSnackTimerRef.current) clearInterval(activeSnackTimerRef.current);
 
-    const activeUser = currentUserRef.current || currentUser || DEFAULT_FALLBACK_USER;
-    const userId = activeUser.id || 'miquel.ribas@aubadcs.com';
+    const activeUser = currentUserRef.current || currentUser;
+    if (!activeUser) return;
+    const userId = activeUser.id;
 
     const { routine } = getCurrentRoutine(activeUser);
     const routineCategory = activeCategory || routine.category;
@@ -1171,6 +1165,9 @@ export default function App() {
     const reminderInterval = Number(e.target.interval.value);
     const lunchStart = e.target.lunch_start.value;
     const lunchEnd = e.target.lunch_end.value;
+
+    const intervalChanged = currentUser?.reminder_interval !== reminderInterval;
+
     const updatedUser = {
       ...currentUser,
       reminder_interval: reminderInterval,
@@ -1185,13 +1182,21 @@ export default function App() {
     }));
     localStorage.setItem(`lunch_settings_${currentUser.id}`, JSON.stringify({ start: lunchStart, end: lunchEnd }));
     localStorage.setItem('movement_snacks_profile', JSON.stringify(updatedUser));
+    currentUserRef.current = updatedUser;
     setCurrentUser(updatedUser);
 
-    if (gameState === 'settings' && nextSnackTime) {
-      const targetTime = new Date(Date.now() + reminderInterval * 60 * 1000);
-      setNextSnackTime(targetTime);
-      setSecondsToNextSnack(reminderInterval * 60);
-      setGameState('idle_countdown');
+    if (gameState === 'settings') {
+      if (nextSnackTime) {
+        // Solo recalculamos el temporizador si el usuario cambió explícitamente el intervalo de tiempo
+        if (intervalChanged) {
+          const targetTime = new Date(Date.now() + reminderInterval * 60 * 1000);
+          setNextSnackTime(targetTime);
+          setSecondsToNextSnack(reminderInterval * 60);
+        }
+        setGameState('idle_countdown');
+      } else {
+        setGameState('waiting_start');
+      }
       return;
     }
 
@@ -1445,13 +1450,28 @@ export default function App() {
           <div 
             className="user-tag" 
             onClick={() => setGameState('user_selection')} 
-            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} 
+            style={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px',
+              padding: '6px 14px',
+              borderRadius: '25px',
+              border: '1.5px solid var(--border-color)',
+              background: '#f8fafc',
+              transition: 'all 0.2s ease'
+            }} 
             title="Haz clic para cambiar de usuario"
           >
-            <div className={`monogram ${currentUser?.avatar_url || DEFAULT_FALLBACK_USER.avatar_url}`}>
-              {getMonogram(currentUser?.username || DEFAULT_FALLBACK_USER.username)}
+            <div className={`monogram ${currentUser?.avatar_url || 'm-grad-1'}`} style={{ width: '28px', height: '28px', fontSize: '0.85rem' }}>
+              {getMonogram(currentUser?.username || '?')}
             </div>
-            <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{currentUser?.username || DEFAULT_FALLBACK_USER.username}</span>
+            <span style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
+              {currentUser?.username || 'Elegir usuario'}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 800, background: 'var(--accent-light)', padding: '2px 8px', borderRadius: '12px' }}>
+              Cambiar 🔄
+            </span>
           </div>
           <button 
             className="db-btn db-btn-secondary" 
