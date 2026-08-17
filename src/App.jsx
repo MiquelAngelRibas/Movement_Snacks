@@ -133,12 +133,14 @@ export default function App() {
   const [selectedGradient, setSelectedGradient] = useState('m-grad-1');
 
   const getLocalPreferences = (user) => {
+    if (!user || !user.id) return user;
     const stored = localStorage.getItem(`movement_snacks_preferences_${user.id}`);
     if (!stored) {
       return {
-        reminder_interval: user.reminder_interval || 45,
-        lunch_start: user.lunch_start || '14:00',
-        lunch_end: user.lunch_end || '16:00'
+        ...user,
+        reminder_interval: user.reminder_interval || 30,
+        lunch_start: user.lunch_start || '13:00',
+        lunch_end: user.lunch_end || '14:00'
       };
     }
 
