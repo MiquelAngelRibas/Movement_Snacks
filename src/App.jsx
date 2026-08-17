@@ -551,12 +551,14 @@ export default function App() {
           return h * 60 + m;
         };
         const currentMins = now.getHours() * 60 + now.getMinutes();
+        const currentSecs = now.getSeconds();
         const endMins = toMins(lunchEnd);
         let minsToWait = endMins - currentMins;
         if (minsToWait < 0) minsToWait += 24 * 60;
         
-        const resumeTime = new Date(Date.now() + (minsToWait + 5) * 60 * 1000);
-        setNextSnackTime(resumeTime);
+        const secsRemaining = Math.max(0, minsToWait * 60 - currentSecs);
+        setSecondsToNextSnack(secsRemaining);
+        document.title = `🍱 Pausa Almuerzo (${lunchStart} - ${lunchEnd})`;
         return;
       }
 
@@ -1160,13 +1162,15 @@ export default function App() {
     setGameState('onboarding');
   };
 
-  const handleSavePreferences = (e) => {
+  const handleSavePreferences = async (e) => {
     e.preventDefault();
+    if (!currentUser) return;
+
     const reminderInterval = Number(e.target.interval.value);
     const lunchStart = e.target.lunch_start.value;
     const lunchEnd = e.target.lunch_end.value;
 
-    const intervalChanged = currentUser?.reminder_interval !== reminderInterval;
+    const intervalChanged = currentUser.reminder_interval !== reminderInterval;
 
     const updatedUser = {
       ...currentUser,
@@ -1175,6 +1179,7 @@ export default function App() {
       lunch_end: lunchEnd
     };
 
+    // 1. Guardar en almacenamiento local
     localStorage.setItem(`movement_snacks_preferences_${currentUser.id}`, JSON.stringify({
       reminder_interval: reminderInterval,
       lunch_start: lunchStart,
@@ -1182,12 +1187,34 @@ export default function App() {
     }));
     localStorage.setItem(`lunch_settings_${currentUser.id}`, JSON.stringify({ start: lunchStart, end: lunchEnd }));
     localStorage.setItem('movement_snacks_profile', JSON.stringify(updatedUser));
+    
     currentUserRef.current = updatedUser;
     setCurrentUser(updatedUser);
+    setUsersList(prev => prev.map(u => u.id === updatedUser.id ? { ...u, ...updatedUser } : u));
 
+    // 2. Guardar en Supabase para sincronización en la nube
+    if (supabase && currentUser.id) {
+      try {
+        await supabase.from('users').update({
+          reminder_interval: reminderInterval,
+          lunch_start: lunchStart,
+          lunch_end: lunchEnd
+        }).eq('id', currentUser.id);
+      } catch (err) {
+        console.error('Error al guardar ajustes en Supabase:', err);
+      }
+    }
+
+    // 3. Gestionar el temporizador
     if (gameState === 'settings') {
+      const inLunch = isTimeInWindow(lunchStart, lunchEnd);
+      if (inLunch) {
+        setGameState('idle_countdown');
+        return;
+      }
+
       if (nextSnackTime) {
-        // Solo recalculamos el temporizador si el usuario cambió explícitamente el intervalo de tiempo
+        // Solo recalculamos el temporizador si el usuario cambió explícitamente el intervalo
         if (intervalChanged) {
           const targetTime = new Date(Date.now() + reminderInterval * 60 * 1000);
           setNextSnackTime(targetTime);
@@ -1390,7 +1417,11 @@ export default function App() {
           <div className="db-card-header">
             <h2 className="db-card-title">Horario y recordatorios</h2>
           </div>
-          <form onSubmit={handleSavePreferences} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <form 
+            key={`${currentUser?.id}_${currentUser?.lunch_start}_${currentUser?.lunch_end}_${currentUser?.reminder_interval}`} 
+            onSubmit={handleSavePreferences} 
+            style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+          >
             <div className="form-group">
               <label htmlFor="interval">Tiempo entre snacks</label>
               <select id="interval" name="interval" className="form-control" defaultValue={currentUser?.reminder_interval || 45}>
