@@ -124,10 +124,10 @@ export default function App() {
       const cached = localStorage.getItem('movement_snacks_profile');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed && parsed.id) return parsed;
+        if (parsed && parsed.id && parsed.username) return parsed;
       }
     } catch (e) {}
-    return DEFAULT_FALLBACK_USER;
+    return null;
   });
   const [loading, setLoading] = useState(true);
 
@@ -158,8 +158,9 @@ export default function App() {
     }
   };
 
-  // --- Estado del Catálogo de Rutinas ---
+  // --- Estado del Catálogo de Rutinas y Vista Previa ---
   const [showCatalog, setShowCatalog] = useState(false);
+  const [previewExercise, setPreviewExercise] = useState(null);
 
   // --- Estados del Temporizador del Ejercicio ---
   const [activeCategory, setActiveCategory] = useState('pierna');
@@ -257,7 +258,19 @@ export default function App() {
     const checkExistingUser = async () => {
       setLoading(true);
       try {
-        let activeUser = currentUser || DEFAULT_FALLBACK_USER;
+        let activeUser = null;
+        let storedId = localStorage.getItem('movement_snacks_user_id');
+
+        try {
+          const cachedProfile = localStorage.getItem('movement_snacks_profile');
+          if (cachedProfile) {
+            const parsed = JSON.parse(cachedProfile);
+            if (parsed && parsed.id && parsed.username) {
+              activeUser = parsed;
+              storedId = parsed.id;
+            }
+          }
+        } catch (e) {}
 
         // 1. Intentar obtener contexto de Teams
         try {
@@ -265,44 +278,50 @@ export default function App() {
           const context = await microsoftTeams.app.getContext();
           setInTeams(true);
           const upn = context?.user?.userPrincipalName || context?.user?.loginHint;
-          if (upn && supabase) {
-            const { data } = await supabase.from('users').select('*');
-            if (data && data.length > 0) {
-              const matched = data.find(u => u.id.toLowerCase() === upn.toLowerCase());
-              if (matched) {
-                activeUser = getLocalPreferences({ ...matched });
-              }
-            }
-          }
+          if (upn) storedId = upn;
         } catch (teamsError) {
           setInTeams(false);
         }
 
-        // 2. Sincronizar con Supabase en navegador estándar
+        // 2. Sincronizar lista de usuarios con Supabase o Local
+        let activeUsers = [];
         if (supabase) {
           try {
-            const localId = localStorage.getItem('movement_snacks_user_id') || activeUser.id;
             const { data: usersData } = await supabase.from('users').select('*');
             if (usersData && usersData.length > 0) {
-              const activeUsers = usersData.filter(u => !u.username.startsWith('__deleted__'));
+              activeUsers = usersData.filter(u => !u.username.startsWith('__deleted__'));
               setUsersList(activeUsers);
-              const matched = activeUsers.find(u => u.id.toLowerCase() === localId.toLowerCase()) || activeUsers[0];
-              if (matched) {
-                activeUser = getLocalPreferences({ ...matched });
-              }
             }
           } catch (e) {
             console.error('Error al sincronizar con Supabase:', e);
           }
+        } else {
+          const localUsers = JSON.parse(localStorage.getItem('movement_snacks_users_local') || '[]');
+          activeUsers = localUsers.filter(u => !u.username.startsWith('__deleted__'));
+          setUsersList(activeUsers);
         }
 
-        // 3. Persistir usuario activo
+        // 3. Si hay storedId, buscar coincidencia exacta
+        if (storedId && activeUsers.length > 0) {
+          const matched = activeUsers.find(u => u.id.toLowerCase() === storedId.toLowerCase());
+          if (matched) {
+            activeUser = getLocalPreferences({ ...matched });
+          }
+        }
+
+        // 4. Si NO hay usuario guardado o identificado, ir a pantalla de selección de usuario
+        if (!activeUser) {
+          setGameState('user_selection');
+          return;
+        }
+
+        // 5. Persistir usuario activo
         localStorage.setItem('movement_snacks_user_id', activeUser.id);
         localStorage.setItem('movement_snacks_profile', JSON.stringify(activeUser));
         currentUserRef.current = activeUser;
         setCurrentUser(activeUser);
 
-        // 4. Restaurar estado diario o iniciar cuenta atrás
+        // 6. Restaurar estado diario o iniciar cuenta atrás
         const restored = restoreDailyState(activeUser);
         if (!restored) {
           const { routine } = getCurrentRoutine(activeUser);
@@ -319,7 +338,7 @@ export default function App() {
         }
       } catch (err) {
         console.error('Error en checkExistingUser:', err);
-        setGameState('idle_countdown');
+        setGameState('user_selection');
       } finally {
         setLoading(false);
       }
@@ -507,8 +526,15 @@ export default function App() {
       })
       .subscribe();
 
+    // Refresco periódico automático cada 15 segundos para sincronización garantizada
+    const pollInterval = setInterval(() => {
+      fetchLeaderboard();
+      fetchActivityFeed();
+    }, 15000);
+
     return () => {
       supabase.removeChannel(logSubscription);
+      clearInterval(pollInterval);
     };
   }, [gameState, currentUser, fetchLeaderboard, fetchActivityFeed, meetingMode]);
 
@@ -1920,32 +1946,118 @@ export default function App() {
       {/* MODAL DEL PLAN DE RUTINAS */}
       {showCatalog && (
         <div className="catalog-modal-overlay" onClick={() => setShowCatalog(false)}>
-          <div className="catalog-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="catalog-modal" style={{ maxWidth: '900px' }} onClick={(e) => e.stopPropagation()}>
             <div className="catalog-header">
-              <h2 className="catalog-header-title">Plan diario de {DAILY_ROUTINES_LIST.length} rutinas</h2>
+              <div>
+                <h2 className="catalog-header-title">Plan Diario de {DAILY_ROUTINES_LIST.length} Snacks de Movimiento</h2>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px', fontWeight: 600 }}>
+                  Haz clic en cualquier ejercicio para ver su animación GIF, postura y técnica recomendada.
+                </div>
+              </div>
               <button className="catalog-close-btn" onClick={() => setShowCatalog(false)}>✕</button>
             </div>
             
             <div className="catalog-content" style={{ paddingTop: '16px' }}>
               <div className="catalog-grid">
                 {DAILY_ROUTINES_LIST.map((routine, index) => (
-                  <div key={routine.id} className="exercise-catalog-card">
-                    <div className="exercise-video-thumbnail-container">
-                      <ExerciseDemo phase={routine.phases[0]} compact />
-                    </div>
-                    <div className="exercise-card-info">
-                      <h3 className="exercise-card-title">{routine.routineName}</h3>
-                      <p className="exercise-card-desc">
-                        {index < 6 ? 'Antes del almuerzo' : 'Después del almuerzo'} · {categoryLabels[routine.category]}
-                      </p>
-                      <div className="exercise-badge-row">
-                        {routine.phases.slice(0, 4).map((phase) => (
-                          <span key={phase.name} className="exercise-badge">{phase.name}</span>
-                        ))}
+                  <div key={routine.id} className="routine-catalog-card">
+                    
+                    {/* Cabecera de la Rutina */}
+                    <div className="routine-card-top">
+                      <div>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Snack {index + 1} • {index < 6 ? 'Mañana' : 'Tarde'}
+                        </div>
+                        <h3 className="routine-card-title">{routine.routineName}</h3>
                       </div>
+                      <span className="routine-card-category">
+                        {categoryLabels[routine.category]}
+                      </span>
                     </div>
+
+                    {/* Lista de Fases de la Rutina */}
+                    <div className="routine-phases-list">
+                      {routine.phases.map((phase, pIdx) => (
+                        <div 
+                          key={pIdx} 
+                          className="routine-phase-item"
+                          onClick={() => setPreviewExercise(phase)}
+                          title={`Ver animación de ${phase.name}`}
+                        >
+                          <span className="routine-phase-num">{pIdx + 1}</span>
+                          <div className="routine-phase-info">
+                            <span className="routine-phase-name">{phase.name}</span>
+                            <span className="routine-phase-meta">{phase.duration}s • 🎯 {phase.muscles}</span>
+                          </div>
+                          <span className="routine-phase-view-btn">
+                            👁️ Ver GIF
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP / MODAL DE VISTA PREVIA DE UN EJERCICIO INDIVIDUAL */}
+      {previewExercise && (
+        <div className="exercise-preview-modal-overlay" onClick={() => setPreviewExercise(null)}>
+          <div className="exercise-preview-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="exercise-preview-header">
+              <div>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Demostración Técnica
+                </span>
+                <h3 className="exercise-preview-title">{previewExercise.name}</h3>
+              </div>
+              <button 
+                className="catalog-close-btn" 
+                style={{ width: '32px', height: '32px', fontSize: '1rem' }} 
+                onClick={() => setPreviewExercise(null)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="exercise-preview-body">
+              {/* Animación GIF perfectamente centrada */}
+              <div className="exercise-preview-video">
+                <ExerciseDemo phase={previewExercise} compact />
+              </div>
+
+              {/* Foco muscular */}
+              <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.1rem' }}>🎯</span>
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Músculos implicados</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>{previewExercise.muscles}</div>
+                </div>
+              </div>
+
+              {/* Instrucciones de ejecución */}
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px' }}>Técnica recomendada</div>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: '1.45' }}>
+                  {previewExercise.desc}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-secondary)' }}>
+                  ⏱️ Duración habitual: <strong style={{ color: 'var(--accent)' }}>{previewExercise.duration}s</strong>
+                </span>
+                <button 
+                  className="db-btn db-btn-accent" 
+                  style={{ padding: '8px 18px', fontSize: '0.8rem' }}
+                  onClick={() => setPreviewExercise(null)}
+                >
+                  Entendido ✓
+                </button>
               </div>
             </div>
           </div>
