@@ -598,11 +598,14 @@ export default function App() {
     };
   }, [gameState, currentUser, fetchLeaderboard, fetchActivityFeed, meetingMode]);
 
-  // --- Lógica del Temporizador Principal ---
+  // --- Lógica del Temporizador Principal y Soporte en Segundo Plano ---
   useEffect(() => {
-    if (gameState !== 'idle_countdown' || !nextSnackTime) return;
+    if (gameState !== 'idle_countdown' || !nextSnackTime) {
+      document.title = 'Snacks de Movimiento';
+      return;
+    }
 
-    countdownTimerRef.current = setInterval(() => {
+    const checkAndTick = () => {
       const now = new Date();
       const lunchStart = currentUser?.lunch_start || '14:00';
       const lunchEnd = currentUser?.lunch_end || '16:00';
@@ -610,7 +613,6 @@ export default function App() {
       const inLunch = isTimeInWindow(lunchStart, lunchEnd);
       
       if (inLunch) {
-        // Si cae en horario de almuerzo, reprogramamos automáticamente para 5 minutos después del fin
         const toMins = (str) => {
           const [h, m] = str.split(':').map(Number);
           return h * 60 + m;
@@ -618,7 +620,7 @@ export default function App() {
         const currentMins = now.getHours() * 60 + now.getMinutes();
         const endMins = toMins(lunchEnd);
         let minsToWait = endMins - currentMins;
-        if (minsToWait < 0) minsToWait += 24 * 60; // Cruzado de día
+        if (minsToWait < 0) minsToWait += 24 * 60;
         
         const resumeTime = new Date(Date.now() + (minsToWait + 5) * 60 * 1000);
         setNextSnackTime(resumeTime);
@@ -627,14 +629,44 @@ export default function App() {
 
       const remaining = Math.max(0, Math.floor((nextSnackTime.getTime() - Date.now()) / 1000));
       setSecondsToNextSnack(remaining);
+      document.title = `(${formatTime(remaining)}) Snacks de Movimiento`;
 
       if (remaining <= 0) {
-        clearInterval(countdownTimerRef.current);
+        if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+        document.title = '⏰ ¡Hora de tu Snack!';
         triggerSnackAlert();
       }
-    }, 1000);
+    };
 
-    return () => clearInterval(countdownTimerRef.current);
+    // 1. Tick periódico
+    checkAndTick();
+    countdownTimerRef.current = setInterval(checkAndTick, 1000);
+
+    // 2. Sincronización instantánea al volver a la pestaña o enfocar ventana
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' || document.hasFocus()) {
+        checkAndTick();
+      }
+    };
+
+    // 3. Timeout exacto para disparo en segundo plano
+    const msRemaining = nextSnackTime.getTime() - Date.now();
+    let exactTimeoutId = null;
+    if (msRemaining > 0) {
+      exactTimeoutId = setTimeout(() => {
+        checkAndTick();
+      }, msRemaining);
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+
+    return () => {
+      if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+      if (exactTimeoutId) clearTimeout(exactTimeoutId);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+    };
   }, [gameState, nextSnackTime, currentUser]);
 
   // --- Notificación de Escritorio con Enfoque de Ventana ---
