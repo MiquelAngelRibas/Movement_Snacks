@@ -1537,115 +1537,230 @@ export default function App() {
           )}
 
           {gameState === 'active_timer' && activePhases.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: '5fr 1fr', gap: '24px', width: '100%' }}>
+            <div className="db-card" style={{ gap: '24px', padding: '28px' }}>
               
-              {/* Columna Izquierda: Temporizador, Video y Controles */}
-              <div className="db-card" style={{ gap: '20px', padding: '24px' }}>
-                <div className="db-card-header">
-                  <div>
-                    <h2 className="db-card-title" style={{ fontSize: '1.25rem' }}>
-                      {inTransition ? `Siguiente: ${activePhases[currentPhaseIndex]?.name}` : activePhases[currentPhaseIndex]?.name}
-                    </h2>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', marginTop: '2px' }}>
-                      {activeRoutineName}
-                    </div>
+              {/* 1. Encabezado de la Rutina */}
+              <div className="db-card-header" style={{ borderBottom: 'none', paddingBottom: '0', marginBottom: '0' }}>
+                <div>
+                  <h2 className="db-card-title" style={{ fontSize: '1.4rem' }}>
+                    {activeRoutineName || 'Snack de Movimiento'}
+                  </h2>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', marginTop: '3px' }}>
+                    Categoría: {categoryLabels[activeCategory]?.toUpperCase()} • 2 minutos
                   </div>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 800, letterSpacing: '0.05em' }}>
-                    {inTransition ? 'PREPARACIÓN' : `FASE ${currentPhaseIndex + 1} DE ${activePhases.length}`}
+                </div>
+                <div>
+                  <span style={{ 
+                    fontSize: '0.85rem', 
+                    background: inTransition ? '#fef3c7' : 'var(--accent-light)', 
+                    color: inTransition ? '#d97706' : 'var(--accent)', 
+                    padding: '6px 14px', 
+                    borderRadius: '20px', 
+                    fontWeight: 800,
+                    border: `1.5px solid ${inTransition ? '#fde68a' : 'var(--accent)'}`
+                  }}>
+                    {inTransition ? '⏸️ DESCANSO / PREPÁRATE' : `FASE ${currentPhaseIndex + 1} DE ${activePhases.length}`}
                   </span>
-                </div>
-
-                <div className="active-video-widget">
-                  <div className="active-video-label">{inTransition ? 'Prepárate para el siguiente movimiento' : 'Demostración animada'}</div>
-                  <div className="active-video-container" style={{ position: 'relative', width: '100%', height: '460px' }}>
-                    {inTransition ? (
-                      <div style={{ 
-                        position: 'absolute', 
-                        top: 0, 
-                        left: 0, 
-                        width: '100%', 
-                        height: '100%', 
-                        background: 'radial-gradient(circle at center, #1e293b 0%, #0f172a 100%)',
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        borderRadius: '8px',
-                        border: '2px dashed var(--accent)',
-                        boxShadow: 'inset 0 0 40px rgba(0,0,0,0.6)',
-                      }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '12px' }}>
-                          Siguiente Ejercicio - Prepárate 🏁
-                        </span>
-                        <h3 style={{ fontSize: '2rem', fontWeight: 900, textTransform: 'uppercase', margin: '0 0 12px 0', color: '#fff', textAlign: 'center', padding: '0 20px' }}>
-                          {activePhases[currentPhaseIndex]?.name}
-                        </h3>
-                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', maxWidth: '460px', textAlign: 'center', margin: '0 0 20px 0', padding: '0 20px', lineHeight: '1.45' }}>
-                          {activePhases[currentPhaseIndex]?.desc}
-                        </p>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '6px 14px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '32px' }}>
-                          <span style={{ fontSize: '0.9rem' }}>🎯</span>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Músculos: {activePhases[currentPhaseIndex]?.muscles}</span>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Comienza en</span>
-                          <span style={{ fontSize: '5rem', fontWeight: 950, color: 'var(--accent)', lineHeight: 1, textShadow: '0 0 25px rgba(239, 68, 68, 0.4)' }}>
-                            {secondsInPhase}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <ExerciseDemo phase={activePhases[currentPhaseIndex]} />
-                    )}
-                  </div>
-                </div>
-
-                <div className="timer-display" style={{ marginTop: '10px' }}>
-                  <div className="timer-countdown" style={{ fontSize: '4.5rem', lineHeight: '1.1', color: inTransition ? 'var(--accent)' : '#000000' }}>
-                    {inTransition ? `Prep: ${secondsInPhase}s` : formatTime(secondsInPhase)}
-                  </div>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '10px', maxWidth: '500px', marginInline: 'auto' }}>
-                    {activePhases[currentPhaseIndex]?.desc}
-                  </p>
-                </div>
-
-                {/* Barra de Progreso Visual */}
-                <div className="phases-timeline" style={{ margin: '10px 0' }}>
-                  {activePhases.map((phase, idx) => {
-                    let cls = 'phase-step';
-                    if (idx === currentPhaseIndex) cls += ' active';
-                    else if (idx < currentPhaseIndex) cls += ' completed';
-                    return (
-                      <div key={idx} className={cls} style={{ fontSize: '0.7rem', padding: '6px' }}>
-                        {phase.name.split(' ')[0]}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Controles de Emergencia / Posponer / Saltar */}
-                <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
-                  <button
-                    className="db-btn db-btn-secondary"
-                    style={{ flex: 1, padding: '10px' }}
-                    onClick={() => handleSnooze(5)}
-                    disabled={snoozeCount >= 3}
-                  >
-                    Posponer 5 min ({snoozeCount}/3)
-                  </button>
-                  <button className="db-btn db-btn-secondary" style={{ flex: 1, padding: '10px' }} onClick={() => handleSkipSnack('skipped')}>
-                    Saltar
-                  </button>
                 </div>
               </div>
 
-              {/* Columna Derecha: Mapa Muscular Garmin Completo */}
-              <div className="db-card" style={{ padding: '16px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <AnatomicalModel 
-                  category={activeCategory} 
-                  musclesList={activePhases[currentPhaseIndex]?.muscles} 
-                  exerciseName={activePhases[currentPhaseIndex]?.name} 
-                />
+              {/* 2. Las 5 Miniaturas de los Ejercicios Visibles Arriba con mayor tamaño */}
+              <div className="filmstrip-container" style={{ padding: '6px 0', gap: '14px', overflowX: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}>
+                {activePhases.map((phase, idx) => {
+                  const isCurrent = idx === currentPhaseIndex;
+                  const isCompleted = idx < currentPhaseIndex;
+
+                  let cardBorder = '1.5px solid var(--border-color)';
+                  let cardBg = 'var(--bg-card)';
+                  let opacity = 1;
+                  let cardShadow = 'var(--shadow-sm)';
+
+                  if (isCurrent) {
+                    cardBorder = inTransition ? '2.5px solid #f59e0b' : '2.5px solid var(--accent)';
+                    cardBg = inTransition ? '#fffbeb' : 'var(--accent-light)';
+                    cardShadow = inTransition ? '0 4px 14px rgba(245, 158, 11, 0.25)' : '0 4px 14px var(--accent-glow)';
+                  } else if (isCompleted) {
+                    cardBorder = '1.5px solid #86efac';
+                    cardBg = '#f0fdf4';
+                    opacity = 0.7;
+                  }
+
+                  return (
+                    <div 
+                      key={idx} 
+                      className="filmstrip-card"
+                      style={{ 
+                        border: cardBorder, 
+                        background: cardBg, 
+                        opacity,
+                        padding: '14px',
+                        gap: '8px',
+                        boxShadow: cardShadow,
+                        position: 'relative'
+                      }}
+                    >
+                      {/* Estado superior */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                        <span className="filmstrip-card-title" style={{ fontSize: '0.75rem' }}>Fase {idx + 1}</span>
+                        {isCompleted && (
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#16a34a', background: '#dcfce7', padding: '2px 8px', borderRadius: '10px' }}>
+                            ✓ Hecho
+                          </span>
+                        )}
+                        {isCurrent && !inTransition && (
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', background: 'white', padding: '2px 8px', borderRadius: '10px', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}>
+                            ▶ Activo
+                          </span>
+                        )}
+                        {isCurrent && inTransition && (
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#d97706', background: 'white', padding: '2px 8px', borderRadius: '10px', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}>
+                            ⏸️ Siguiente
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Demo animada perfectamente centrada y nítida */}
+                      <div className="filmstrip-video-container" style={{ height: '145px', borderRadius: '8px', background: '#ffffff', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ExerciseDemo phase={phase} compact />
+                      </div>
+
+                      <div style={{ textAlign: 'center', width: '100%' }}>
+                        <span className="filmstrip-card-desc" style={{ fontSize: '0.9rem', fontWeight: 800, display: 'block' }}>{phase.name}</span>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                          <span className="filmstrip-card-duration" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>{phase.duration}s</span>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 700 }}>🎯 {phase.muscles}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 3. Panel de Temporizador Compacto y Equilibrado */}
+              <div style={{ 
+                background: inTransition ? '#fffbeb' : '#f8fafc', 
+                border: `1.5px solid ${inTransition ? '#f59e0b' : 'var(--border-color)'}`,
+                borderRadius: '14px', 
+                padding: '20px 24px', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                textAlign: 'center',
+                gap: '12px',
+                boxShadow: inTransition ? '0 4px 16px rgba(245, 158, 11, 0.12)' : 'var(--shadow-sm)'
+              }}>
+                
+                {/* LÍNEA SUPERIOR: Nombre del ejercicio actual y contador horizontal compacto */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: '750px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div style={{ textAlign: 'left' }}>
+                    <span style={{ 
+                      fontSize: '0.75rem', 
+                      fontWeight: 800, 
+                      textTransform: 'uppercase', 
+                      letterSpacing: '0.1em', 
+                      color: inTransition ? '#d97706' : 'var(--accent)' 
+                    }}>
+                      {inTransition ? '⏸️ DESCANSO / PREPÁRATE' : `EJERCICIO ${currentPhaseIndex + 1} DE ${activePhases.length}`}
+                    </span>
+                    <h3 style={{ 
+                      fontSize: '1.6rem', 
+                      fontWeight: 900, 
+                      margin: '2px 0 0 0', 
+                      color: inTransition ? '#92400e' : 'var(--text-primary)',
+                      letterSpacing: '-0.01em'
+                    }}>
+                      {inTransition 
+                        ? `Prepárate: ${activePhases[currentPhaseIndex]?.name}` 
+                        : activePhases[currentPhaseIndex]?.name}
+                    </h3>
+                  </div>
+
+                  {/* CONTADOR DE SEGUNDOS COMPACTO */}
+                  <div style={{ 
+                    fontSize: '3.4rem', 
+                    fontWeight: 950, 
+                    lineHeight: 1, 
+                    fontVariantNumeric: 'tabular-nums',
+                    color: inTransition ? '#d97706' : 'var(--text-primary)',
+                    background: inTransition ? '#fef3c7' : 'white',
+                    padding: '6px 20px',
+                    borderRadius: '12px',
+                    border: `1.5px solid ${inTransition ? '#fde68a' : 'var(--border-color)'}`,
+                    boxShadow: 'var(--shadow-sm)'
+                  }}>
+                    {inTransition ? `${secondsInPhase}s` : formatTime(secondsInPhase)}
+                  </div>
+                </div>
+
+                {/* LÍNEA INFERIOR: Siguiente Ejercicio en la Secuencia */}
+                <div style={{ 
+                  width: '100%', 
+                  maxWidth: '750px',
+                  background: 'white', 
+                  border: '1.5px solid var(--border-color)', 
+                  borderRadius: '10px', 
+                  padding: '10px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: 'var(--shadow-sm)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left' }}>
+                    <span style={{ fontSize: '1.2rem' }}>⏭️</span>
+                    <div>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', marginRight: '6px' }}>
+                        {inTransition ? 'Comenzando en breve:' : 'Siguiente:'}
+                      </span>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                        {inTransition 
+                          ? activePhases[currentPhaseIndex]?.name 
+                          : (currentPhaseIndex + 1 < activePhases.length 
+                              ? activePhases[currentPhaseIndex + 1]?.name 
+                              : '🏁 ¡Último ejercicio! Fin de rutina (+10 pts)')
+                        }
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: 'right', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                    {inTransition 
+                      ? `Duración: ${activePhases[currentPhaseIndex]?.duration}s` 
+                      : (currentPhaseIndex + 1 < activePhases.length 
+                          ? `Duración: ${activePhases[currentPhaseIndex + 1]?.duration}s` 
+                          : '🏆 +10 puntos')
+                    }
+                  </div>
+                </div>
+
+              </div>
+
+              {/* 4. Barra de Progreso Visual */}
+              <div className="phases-timeline" style={{ margin: '0' }}>
+                {activePhases.map((phase, idx) => {
+                  let cls = 'phase-step';
+                  if (idx === currentPhaseIndex) cls += ' active';
+                  else if (idx < currentPhaseIndex) cls += ' completed';
+                  return (
+                    <div key={idx} className={cls} style={{ fontSize: '0.75rem', padding: '8px' }}>
+                      {phase.name.split(' ')[0]}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 5. Controles de Emergencia / Posponer / Saltar */}
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <button
+                  className="db-btn db-btn-secondary"
+                  style={{ flex: 1, padding: '12px' }}
+                  onClick={() => handleSnooze(5)}
+                  disabled={snoozeCount >= 3}
+                >
+                  Posponer 5 min ({snoozeCount}/3)
+                </button>
+                <button className="db-btn db-btn-secondary" style={{ flex: 1, padding: '12px' }} onClick={() => handleSkipSnack('skipped')}>
+                  Saltar este snack
+                </button>
               </div>
 
             </div>
