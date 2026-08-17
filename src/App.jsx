@@ -108,6 +108,15 @@ const DEFAULT_GRADIENTS = [
   'm-grad-7'
 ];
 
+const DEFAULT_FALLBACK_USER = {
+  id: 'miquel.ribas@aubadcs.com',
+  username: 'Miquel Àngel',
+  avatar_url: 'm-grad-1',
+  reminder_interval: 30,
+  lunch_start: '13:00',
+  lunch_end: '14:00'
+};
+
 export default function App() {
   // --- Estados de Usuario ---
   const [currentUser, setCurrentUser] = useState(() => {
@@ -118,7 +127,7 @@ export default function App() {
         if (parsed && parsed.id) return parsed;
       }
     } catch (e) {}
-    return null;
+    return DEFAULT_FALLBACK_USER;
   });
   const [loading, setLoading] = useState(true);
 
@@ -248,120 +257,69 @@ export default function App() {
     const checkExistingUser = async () => {
       setLoading(true);
       try {
-        // 1. Intentar iniciar Microsoft Teams SDK
+        let activeUser = currentUser || DEFAULT_FALLBACK_USER;
+
+        // 1. Intentar obtener contexto de Teams
         try {
           await microsoftTeams.app.initialize();
           const context = await microsoftTeams.app.getContext();
           setInTeams(true);
-          if (context?.user?.userPrincipalName) {
-            const teamsId = context.user.userPrincipalName; // Usamos email de Teams como ID único
-            if (supabase) {
-              const { data, error } = await supabase.from('users').select('*').eq('id', teamsId).maybeSingle();
-              if (data) {
-                const mergedUser = getLocalPreferences({ ...data });
-                const savedLunch = localStorage.getItem(`lunch_settings_${data.id}`);
-                let localStart = '14:00';
-                let localEnd = '16:00';
-                if (savedLunch) {
-                  try {
-                    const { start, end } = JSON.parse(savedLunch);
-                    localStart = start;
-                    localEnd = end;
-                  } catch (e) {}
-                }
-                mergedUser.lunch_start = mergedUser.lunch_start || localStart;
-                mergedUser.lunch_end = mergedUser.lunch_end || localEnd;
-                localStorage.setItem(`lunch_settings_${data.id}`, JSON.stringify({ start: mergedUser.lunch_start, end: mergedUser.lunch_end }));
-                setCurrentUser(mergedUser);
-                restoreDailyState(mergedUser);
-                setLoading(false);
-                return;
+          const upn = context?.user?.userPrincipalName || context?.user?.loginHint;
+          if (upn && supabase) {
+            const { data } = await supabase.from('users').select('*');
+            if (data && data.length > 0) {
+              const matched = data.find(u => u.id.toLowerCase() === upn.toLowerCase());
+              if (matched) {
+                activeUser = getLocalPreferences({ ...matched });
               }
             }
-            // Los perfiles se administran fuera de la aplicación.
-            setGameState('access_restricted');
-            setLoading(false);
-            return;
           }
         } catch (teamsError) {
-          console.log('No se detectó el entorno de MS Teams, usando almacenamiento local.');
           setInTeams(false);
         }
 
-        // 2. Fallback a LocalStorage en navegador estándar
-        const localUserId = localStorage.getItem('movement_snacks_user_id') || currentUser?.id;
-        if (localUserId) {
-          if (supabase) {
-            try {
-              const { data, error } = await supabase.from('users').select('*').eq('id', localUserId).maybeSingle();
-              if (data) {
-                const mergedUser = getLocalPreferences({ ...data });
-                const savedLunch = localStorage.getItem(`lunch_settings_${data.id}`);
-                let localStart = '14:00';
-                let localEnd = '16:00';
-                if (savedLunch) {
-                  try {
-                    const { start, end } = JSON.parse(savedLunch);
-                    localStart = start;
-                    localEnd = end;
-                  } catch (e) {}
-                }
-                mergedUser.lunch_start = mergedUser.lunch_start || localStart;
-                mergedUser.lunch_end = mergedUser.lunch_end || localEnd;
-                localStorage.setItem(`lunch_settings_${data.id}`, JSON.stringify({ start: mergedUser.lunch_start, end: mergedUser.lunch_end }));
-                localStorage.setItem('movement_snacks_user_id', mergedUser.id);
-                localStorage.setItem('movement_snacks_profile', JSON.stringify(mergedUser));
-                setCurrentUser(mergedUser);
-                restoreDailyState(mergedUser);
-                setLoading(false);
-                return;
-              }
-            } catch (err) {
-              console.error('Error al obtener usuario de Supabase:', err);
-            }
-          }
-          
-          // Si no hay Supabase o no se encontró en DB, recuperamos el perfil local guardado
-          const cachedUser = localStorage.getItem('movement_snacks_profile');
-          if (cachedUser) {
-            try {
-              const parsed = JSON.parse(cachedUser);
-              if (parsed && parsed.id) {
-                setCurrentUser(parsed);
-                restoreDailyState(parsed);
-                setLoading(false);
-                return;
-              }
-            } catch (e) {}
-          }
-        }
-
-        // Si no hay usuario recordado, cargamos la lista para la pantalla de selección
-        let hasUsers = false;
+        // 2. Sincronizar con Supabase en navegador estándar
         if (supabase) {
           try {
-            const { data } = await supabase.from('users').select('*');
-            if (data && data.length > 0) {
-              const activeUsers = data.filter(u => !u.username.startsWith('__deleted__'));
+            const localId = localStorage.getItem('movement_snacks_user_id') || activeUser.id;
+            const { data: usersData } = await supabase.from('users').select('*');
+            if (usersData && usersData.length > 0) {
+              const activeUsers = usersData.filter(u => !u.username.startsWith('__deleted__'));
               setUsersList(activeUsers);
-              hasUsers = activeUsers.length > 0;
+              const matched = activeUsers.find(u => u.id.toLowerCase() === localId.toLowerCase()) || activeUsers[0];
+              if (matched) {
+                activeUser = getLocalPreferences({ ...matched });
+              }
             }
           } catch (e) {
-            console.error('Error al cargar lista inicial de usuarios:', e);
-          }
-        } else {
-          const localUsers = JSON.parse(localStorage.getItem('movement_snacks_users_local') || '[]');
-          const activeLocalUsers = localUsers.filter(u => !u.username.startsWith('__deleted__'));
-          if (activeLocalUsers.length > 0) {
-            setUsersList(activeLocalUsers);
-            hasUsers = true;
+            console.error('Error al sincronizar con Supabase:', e);
           }
         }
 
-        setGameState(hasUsers ? 'user_selection' : 'access_restricted');
+        // 3. Persistir usuario activo
+        localStorage.setItem('movement_snacks_user_id', activeUser.id);
+        localStorage.setItem('movement_snacks_profile', JSON.stringify(activeUser));
+        currentUserRef.current = activeUser;
+        setCurrentUser(activeUser);
+
+        // 4. Restaurar estado diario o iniciar cuenta atrás
+        const restored = restoreDailyState(activeUser);
+        if (!restored) {
+          const { routine } = getCurrentRoutine(activeUser);
+          if (routine) {
+            setActiveRoutineName(routine.routineName);
+            setActivePhases(routine.phases || []);
+            setActiveCategory(routine.category || 'pierna');
+          }
+          const minutes = activeUser.reminder_interval || 30;
+          const targetTime = new Date(Date.now() + minutes * 60 * 1000);
+          setNextSnackTime(targetTime);
+          setSecondsToNextSnack(minutes * 60);
+          setGameState('idle_countdown');
+        }
       } catch (err) {
-        console.error('Error al comprobar usuario existente:', err);
-        setGameState('access_restricted');
+        console.error('Error en checkExistingUser:', err);
+        setGameState('idle_countdown');
       } finally {
         setLoading(false);
       }
@@ -416,64 +374,20 @@ export default function App() {
 
   // --- Carga de Marcador y Feed ---
   const fetchLeaderboard = useCallback(async () => {
-    if (!currentUser) return;
+    const activeUser = currentUser || DEFAULT_FALLBACK_USER;
 
     if (!supabase) {
-      // Inicializar historial local si no existe para hacer la demostración vistosa
-      if (!localStorage.getItem('movement_snacks_logs_history')) {
-        const mockHistory = [];
-        const today = new Date();
-        const users = [
-          { id: 'local_user', username: currentUser?.username || 'Miquel Ángel', avatar_url: currentUser?.avatar_url || 'm-grad-1' },
-          { id: 'compañero_demo', username: 'Carlos R.', avatar_url: 'm-grad-2' }
-        ];
-        
-        for (let i = 1; i <= 20; i++) {
-          const logDate = new Date();
-          logDate.setDate(today.getDate() - i);
-          
-          const winnerIdx = i % 2 === 0 ? 0 : 1;
-          const loserIdx = winnerIdx === 0 ? 1 : 0;
-          
-          const winnerCount = Math.floor(Math.random() * 2) + 3; 
-          for (let j = 0; j < winnerCount; j++) {
-            mockHistory.push({
-              id: `mock_${i}_win_${j}`,
-              user_id: users[winnerIdx].id,
-              category: ['pierna', 'empuje', 'tiron', 'potencia'][Math.floor(Math.random() * 4)],
-              status: 'completed',
-              points_earned: 10,
-              created_at: logDate.toISOString()
-            });
-          }
-          
-          const loserCount = Math.floor(Math.random() * 2) + 1; 
-          for (let j = 0; j < loserCount; j++) {
-            mockHistory.push({
-              id: `mock_${i}_lose_${j}`,
-              user_id: users[loserIdx].id,
-              category: ['pierna', 'empuje', 'tiron', 'potencia'][Math.floor(Math.random() * 4)],
-              status: 'completed',
-              points_earned: 10,
-              created_at: logDate.toISOString()
-            });
-          }
-        }
-        localStorage.setItem('movement_snacks_logs_history', JSON.stringify(mockHistory));
-      }
-
       // Carga de marcador local de respaldo
-      const cachedUser = currentUser || { id: 'local_user', username: 'Miquel', avatar_url: 'm-grad-1' };
+      const cachedUser = activeUser;
       const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(cachedUser.id)) || '[]');
       const myPoints = localLogs.filter(l => l.status === 'completed').reduce((sum, l) => sum + (l.points_earned ?? 10), 0);
 
       const localUsers = [
         { id: cachedUser.id, username: cachedUser.username, avatar_url: cachedUser.avatar_url, points: myPoints },
-        { id: 'compañero_demo', username: 'Carlos R.', avatar_url: 'm-grad-2', points: 30 }
+        { id: 'user_w3qke466k', username: 'Joan Payeras', avatar_url: 'm-grad-6', points: 30 }
       ].sort((a, b) => b.points - a.points);
       setUsersList(localUsers);
 
-      // Agrupar historial local para el calendario
       const historyLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_history') || '[]');
       const allLocalLogs = [...historyLogs, ...localLogs];
       const winners = calculateWinnersMap(allLocalLogs, localUsers);
@@ -948,14 +862,8 @@ export default function App() {
 
     if (activeSnackTimerRef.current) clearInterval(activeSnackTimerRef.current);
 
-    const activeUser = currentUserRef.current || currentUser;
-    let userId = activeUser?.id || localStorage.getItem('movement_snacks_user_id');
-    if (!userId) {
-      try {
-        const cachedProfile = JSON.parse(localStorage.getItem('movement_snacks_profile') || '{}');
-        userId = cachedProfile.id;
-      } catch (e) {}
-    }
+    const activeUser = currentUserRef.current || currentUser || DEFAULT_FALLBACK_USER;
+    const userId = activeUser.id || 'miquel.ribas@aubadcs.com';
 
     const { routine } = getCurrentRoutine(activeUser);
     const routineCategory = activeCategory || routine.category;
@@ -972,13 +880,11 @@ export default function App() {
     };
 
     // 1. Guardar localmente
-    if (userId) {
-      const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(userId)) || '[]');
-      localLogs.push(logPayload);
-      localStorage.setItem(getDailyLogStorageKey(userId), JSON.stringify(localLogs));
-    }
+    const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(userId)) || '[]');
+    localLogs.push(logPayload);
+    localStorage.setItem(getDailyLogStorageKey(userId), JSON.stringify(localLogs));
 
-    // 2. Avanzar el índice de la rutina ahora que se ha completado
+    // 2. Avanzar el índice de la rutina
     advanceRoutine();
 
     // 3. Actualización optimista inmediata en UI
@@ -1006,7 +912,7 @@ export default function App() {
     });
 
     // 4. Sincronizar en base de datos
-    if (supabase && userId) {
+    if (supabase) {
       try {
         const { error } = await supabase.from('snacks_log').insert({
           user_id: logPayload.user_id,
@@ -1516,10 +1422,10 @@ export default function App() {
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} 
             title="Haz clic para cambiar de usuario"
           >
-            <div className={`monogram ${currentUser?.avatar_url || 'm-grad-1'}`}>
-              {getMonogram(currentUser?.username)}
+            <div className={`monogram ${currentUser?.avatar_url || DEFAULT_FALLBACK_USER.avatar_url}`}>
+              {getMonogram(currentUser?.username || DEFAULT_FALLBACK_USER.username)}
             </div>
-            <span style={{ fontWeight: 600 }}>{currentUser?.username || 'Seleccionar Usuario'}</span>
+            <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{currentUser?.username || DEFAULT_FALLBACK_USER.username}</span>
           </div>
           <button 
             className="db-btn db-btn-secondary" 
