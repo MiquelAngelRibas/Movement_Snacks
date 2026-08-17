@@ -178,6 +178,11 @@ export default function App() {
   // --- Referencias ---
   const countdownTimerRef = useRef(null);
   const activeSnackTimerRef = useRef(null);
+  const currentUserRef = useRef(currentUser);
+
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
 
   // Generar monograma de iniciales (ej: "Miquel Angel" -> "MA")
   const getMonogram = (name) => {
@@ -880,7 +885,7 @@ export default function App() {
     }, 250);
   };
 
-  // Completado con Éxito
+  // Completado con Éxito (Se completaron todos los ejercicios del temporizador)
   const handleSnackCompleted = async () => {
     playAudioTone(880, 0.15);
     setTimeout(() => playAudioTone(1046.5, 0.4), 100); // Tono de victoria
@@ -888,13 +893,22 @@ export default function App() {
 
     if (activeSnackTimerRef.current) clearInterval(activeSnackTimerRef.current);
 
-    const { routine } = getCurrentRoutine(currentUser);
+    const activeUser = currentUserRef.current || currentUser;
+    let userId = activeUser?.id || localStorage.getItem('movement_snacks_user_id');
+    if (!userId) {
+      try {
+        const cachedProfile = JSON.parse(localStorage.getItem('movement_snacks_profile') || '{}');
+        userId = cachedProfile.id;
+      } catch (e) {}
+    }
+
+    const { routine } = getCurrentRoutine(activeUser);
     const routineCategory = activeCategory || routine.category;
     const routinePhases = activePhases.length > 0 ? activePhases : routine.phases;
 
     const logPayload = {
       id: Math.random().toString(36).substr(2, 9),
-      user_id: currentUser.id,
+      user_id: userId,
       category: routineCategory,
       exercises_performed: routinePhases.map(p => p.name),
       status: 'completed',
@@ -903,39 +917,41 @@ export default function App() {
     };
 
     // 1. Guardar localmente
-    const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(currentUser.id)) || '[]');
-    localLogs.push(logPayload);
-    localStorage.setItem(getDailyLogStorageKey(currentUser.id), JSON.stringify(localLogs));
+    if (userId) {
+      const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(userId)) || '[]');
+      localLogs.push(logPayload);
+      localStorage.setItem(getDailyLogStorageKey(userId), JSON.stringify(localLogs));
+    }
 
     // 2. Avanzar el índice de la rutina ahora que se ha completado
     advanceRoutine();
 
     // 3. Actualización optimista inmediata en UI
-    setActivityFeed(prev => [{ ...logPayload, users: currentUser }, ...prev.slice(0, 9)]);
+    setActivityFeed(prev => [{ ...logPayload, users: activeUser }, ...prev.slice(0, 9)]);
     setUsersList(prev => {
-      const exists = prev.some(u => u.id === currentUser.id);
+      const exists = prev.some(u => u.id === userId);
       if (exists) {
-        return prev.map(u => u.id === currentUser.id ? { ...u, points: (u.points || 0) + 10 } : u).sort((a, b) => b.points - a.points);
+        return prev.map(u => u.id === userId ? { ...u, points: (u.points || 0) + 10 } : u).sort((a, b) => b.points - a.points);
       }
-      return [...prev, { ...currentUser, points: 10 }].sort((a, b) => b.points - a.points);
+      return [...prev, { ...activeUser, id: userId, points: 10 }].sort((a, b) => b.points - a.points);
     });
 
     const todayStr = getLocalDateKey();
     setDailyWinners(prev => {
       const currentToday = prev[todayStr];
-      const newPoints = (currentToday?.winner?.id === currentUser.id ? currentToday.points : 0) + 10;
+      const newPoints = (currentToday?.winner?.id === userId ? currentToday.points : 0) + 10;
       return {
         ...prev,
         [todayStr]: {
-          winner: currentUser,
-          points: (currentToday && currentToday.winner?.id === currentUser.id) ? (currentToday.points + 10) : ((currentToday?.points || 0) < 10 ? 10 : currentToday.points),
-          scores: [{ user: currentUser, points: newPoints }]
+          winner: activeUser,
+          points: (currentToday && currentToday.winner?.id === userId) ? (currentToday.points + 10) : ((currentToday?.points || 0) < 10 ? 10 : currentToday.points),
+          scores: [{ user: activeUser, points: newPoints }]
         }
       };
     });
 
     // 4. Sincronizar en base de datos
-    if (supabase) {
+    if (supabase && userId) {
       try {
         const { error } = await supabase.from('snacks_log').insert({
           user_id: logPayload.user_id,
@@ -955,18 +971,19 @@ export default function App() {
       }
     } else {
       const historyLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_history') || '[]');
+      const localLogs = userId ? JSON.parse(localStorage.getItem(getDailyLogStorageKey(userId)) || '[]') : [];
       const allLocalLogs = [...historyLogs, ...localLogs];
       const localUsers = JSON.parse(localStorage.getItem('movement_snacks_users_local') || '[]');
-      setDailyWinners(calculateWinnersMap(allLocalLogs, localUsers.length > 0 ? localUsers : [currentUser]));
+      setDailyWinners(calculateWinnersMap(allLocalLogs, localUsers.length > 0 ? localUsers : [activeUser]));
     }
 
     // Programar el siguiente
     setSnoozeCount(0);
-    const minutes = currentUser?.reminder_interval || 45;
+    const minutes = activeUser?.reminder_interval || 45;
     setNextSnackTime(new Date(Date.now() + minutes * 60 * 1000));
     setSecondsToNextSnack(minutes * 60);
 
-    const nextInfo = getCurrentRoutine(currentUser);
+    const nextInfo = getCurrentRoutine(activeUser);
     setActiveRoutineName(nextInfo.routine.routineName);
     setActivePhases(nextInfo.routine.phases);
     setActiveCategory(nextInfo.routine.category);
@@ -1548,20 +1565,15 @@ export default function App() {
                     Levántate, separa el teclado y colócate en posición.
                   </p>
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '12px' }}>
-                    <button className="db-btn db-btn-accent" style={{ fontSize: '1rem', padding: '14px' }} onClick={handleStartSnack}>
-                      ⏱️ Iniciar Temporizador (2 Min)
-                    </button>
-                    <button className="db-btn db-btn-secondary" style={{ fontSize: '0.9rem', padding: '14px', borderColor: 'var(--accent)', color: 'var(--accent)', fontWeight: 700 }} onClick={handleSnackCompleted}>
-                      ✅ Ya realizado (+10 pts)
-                    </button>
-                  </div>
+                  <button className="db-btn db-btn-accent" style={{ width: '100%', fontSize: '1.05rem', padding: '16px' }} onClick={handleStartSnack}>
+                    ⏱️ Comenzar Snack de 2 Minutos
+                  </button>
 
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                    <button className="db-btn db-btn-secondary" style={{ flex: 1, padding: '10px', fontSize: '0.8rem' }} onClick={() => handleSnooze(10)}>
+                    <button className="db-btn db-btn-secondary" style={{ flex: 1, padding: '10px', fontSize: '0.85rem' }} onClick={() => handleSnooze(10)}>
                       ⏸️ Posponer 10 min
                     </button>
-                    <button className="db-btn db-btn-secondary" style={{ flex: 1, padding: '10px', fontSize: '0.8rem' }} onClick={() => setGameState('idle_countdown')}>
+                    <button className="db-btn db-btn-secondary" style={{ flex: 1, padding: '10px', fontSize: '0.85rem' }} onClick={() => setGameState('idle_countdown')}>
                       ↩️ Guardar para luego (Tengo reunión)
                     </button>
                   </div>
@@ -1657,24 +1669,17 @@ export default function App() {
                   })}
                 </div>
 
-                {/* Controles de Emergencia / Finalización / Posponer */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '12px', marginTop: '10px' }}>
-                  <button
-                    className="db-btn db-btn-accent"
-                    style={{ padding: '10px', fontSize: '0.85rem' }}
-                    onClick={handleSnackCompleted}
-                  >
-                    ✅ Completar ya (+10 pts)
-                  </button>
+                {/* Controles de Emergencia / Posponer / Saltar */}
+                <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
                   <button
                     className="db-btn db-btn-secondary"
-                    style={{ padding: '10px', fontSize: '0.85rem' }}
+                    style={{ flex: 1, padding: '10px' }}
                     onClick={() => handleSnooze(5)}
                     disabled={snoozeCount >= 3}
                   >
                     Posponer 5 min ({snoozeCount}/3)
                   </button>
-                  <button className="db-btn db-btn-secondary" style={{ padding: '10px', fontSize: '0.85rem' }} onClick={() => handleSkipSnack('skipped')}>
+                  <button className="db-btn db-btn-secondary" style={{ flex: 1, padding: '10px' }} onClick={() => handleSkipSnack('skipped')}>
                     Saltar
                   </button>
                 </div>
@@ -1740,37 +1745,28 @@ export default function App() {
 
                const { routine, completedCount, totalCount } = getCurrentRoutine(currentUser);
                return (
-                 <div className="db-card" style={{ alignItems: 'center', padding: '40px 32px' }}>
-                   <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.1em' }}>
-                     Siguiente: {routine?.routineName || categoryLabels[activeCategory]?.toUpperCase()}
-                   </div>
-                   <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent)', marginTop: '4px' }}>
-                     {completedCount} de {totalCount} rutinas completadas hoy
-                   </div>
-                   <div className="timer-countdown" style={{ margin: '20px 0', fontSize: '5.5rem' }}>
-                     {formatTime(secondsToNextSnack)}
-                   </div>
-                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', textAlign: 'center' }}>
-                     Concéntrate en tu trabajo. Cuando el contador llegue a cero, te avisaremos para activar el cuerpo.
-                   </div>
-                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                     <button className="db-btn db-btn-accent" onClick={triggerSnackAlert}>
-                       Comenzar Snack Ya
-                     </button>
-                     <button className="db-btn db-btn-secondary" onClick={() => handleSnooze(10)}>
-                       Posponer 10 min
-                     </button>
-                     <button className="db-btn db-btn-secondary" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={() => {
-                       const { routine: currR } = getCurrentRoutine(currentUser);
-                       setActiveRoutineName(currR.routineName);
-                       setActivePhases(currR.phases);
-                       setActiveCategory(currR.category);
-                       handleSnackCompleted();
-                     }}>
-                       ✅ Ya lo hice (+10 pts)
-                     </button>
-                   </div>
-                 </div>
+                 <div className="db-card" style={{ alignItems: 'center', padding: '48px 32px' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.1em' }}>
+                      Siguiente: {routine?.routineName || categoryLabels[activeCategory]?.toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent)', marginTop: '4px' }}>
+                      {completedCount} de {totalCount} rutinas completadas hoy
+                    </div>
+                    <div className="timer-countdown" style={{ margin: '24px 0', fontSize: '5.5rem' }}>
+                      {formatTime(secondsToNextSnack)}
+                    </div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '32px', textAlign: 'center' }}>
+                      Concéntrate en tu trabajo. Cuando el contador llegue a cero, te avisaremos para activar el cuerpo.
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                      <button className="db-btn db-btn-accent" onClick={triggerSnackAlert}>
+                        Comenzar Snack Ya
+                      </button>
+                      <button className="db-btn db-btn-secondary" onClick={() => handleSnooze(10)}>
+                        Posponer 10 min
+                      </button>
+                    </div>
+                  </div>
                );
              })()}
 
