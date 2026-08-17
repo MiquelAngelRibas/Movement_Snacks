@@ -502,22 +502,9 @@ export default function App() {
     // Suscripción Realtime a Supabase para notificaciones instantáneas
     const logSubscription = supabase
       .channel('table-db-changes')
-      .on('postgres_changes', { event: 'INSERT', table: 'snacks_log' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', table: 'snacks_log' }, () => {
         fetchLeaderboard();
         fetchActivityFeed();
-
-        // Obtener el ID del usuario actual de forma segura
-        const myUserId = currentUserRef.current?.id || currentUser?.id || localStorage.getItem('movement_snacks_user_id');
-
-        // Disparar sonido y notificación ÚNICAMENTE si el ejercicio lo completó otro compañero
-        if (payload.new && payload.new.user_id && myUserId && payload.new.user_id !== myUserId && payload.new.status === 'completed') {
-          if (!meetingMode) playAudioTone(660, 0.4);
-          if (payload.new.category === 'finalizado') {
-            showDesktopNotification('Jornada finalizada', 'Compañero desconectado');
-          } else {
-            showDesktopNotification('Compañero activo', 'Pausa activa');
-          }
-        }
       })
       .subscribe();
 
@@ -779,18 +766,18 @@ export default function App() {
 
   // Alerta de Snack Activada (Se cumplió el tiempo o clic en Comenzar)
   const triggerSnackAlert = () => {
-    if (!meetingMode) {
-      playAudioTone(523.25, 0.4); // Nota DO5
-      setTimeout(() => playAudioTone(659.25, 0.4), 150); // Nota MI5
-    }
-    
-    showDesktopNotification('Es hora de tu snack', 'Pausa activa');
-    
     const { routine } = getCurrentRoutine(currentUser);
     setActiveRoutineName(routine.routineName);
     setActivePhases(routine.phases);
     setActiveCategory(routine.category);
     setGameState('preview_card');
+
+    if (!meetingMode) {
+      playAudioTone(523.25, 0.4); // Nota DO5
+      setTimeout(() => playAudioTone(659.25, 0.4), 150); // Nota MI5
+    }
+    
+    showDesktopNotification('Hora de moverse', routine?.routineName ? `Toca hacer: ${routine.routineName}` : 'Pausa activa de 2 minutos');
   };
 
   // Comenzar el ejercicio real (Terminar vista previa e iniciar inmediatamente sin tiempo extra)
