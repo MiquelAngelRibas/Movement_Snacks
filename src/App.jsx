@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import * as microsoftTeams from '@microsoft/teams-js';
 import confetti from 'canvas-confetti';
@@ -391,156 +391,156 @@ export default function App() {
   }, [currentUser]);
 
   // --- Carga de Marcador y Feed ---
+  const fetchLeaderboard = useCallback(async () => {
+    if (!currentUser) return;
+
+    if (!supabase) {
+      // Inicializar historial local si no existe para hacer la demostración vistosa
+      if (!localStorage.getItem('movement_snacks_logs_history')) {
+        const mockHistory = [];
+        const today = new Date();
+        const users = [
+          { id: 'local_user', username: currentUser?.username || 'Miquel Ángel', avatar_url: currentUser?.avatar_url || 'm-grad-1' },
+          { id: 'compañero_demo', username: 'Carlos R.', avatar_url: 'm-grad-2' }
+        ];
+        
+        for (let i = 1; i <= 20; i++) {
+          const logDate = new Date();
+          logDate.setDate(today.getDate() - i);
+          
+          const winnerIdx = i % 2 === 0 ? 0 : 1;
+          const loserIdx = winnerIdx === 0 ? 1 : 0;
+          
+          const winnerCount = Math.floor(Math.random() * 2) + 3; 
+          for (let j = 0; j < winnerCount; j++) {
+            mockHistory.push({
+              id: `mock_${i}_win_${j}`,
+              user_id: users[winnerIdx].id,
+              category: ['pierna', 'empuje', 'tiron', 'potencia'][Math.floor(Math.random() * 4)],
+              status: 'completed',
+              points_earned: 10,
+              created_at: logDate.toISOString()
+            });
+          }
+          
+          const loserCount = Math.floor(Math.random() * 2) + 1; 
+          for (let j = 0; j < loserCount; j++) {
+            mockHistory.push({
+              id: `mock_${i}_lose_${j}`,
+              user_id: users[loserIdx].id,
+              category: ['pierna', 'empuje', 'tiron', 'potencia'][Math.floor(Math.random() * 4)],
+              status: 'completed',
+              points_earned: 10,
+              created_at: logDate.toISOString()
+            });
+          }
+        }
+        localStorage.setItem('movement_snacks_logs_history', JSON.stringify(mockHistory));
+      }
+
+      // Carga de marcador local de respaldo
+      const cachedUser = currentUser || { id: 'local_user', username: 'Miquel', avatar_url: 'm-grad-1' };
+      const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(cachedUser.id)) || '[]');
+      const myPoints = localLogs.filter(l => l.status === 'completed').reduce((sum, l) => sum + (l.points_earned ?? 10), 0);
+
+      const localUsers = [
+        { id: cachedUser.id, username: cachedUser.username, avatar_url: cachedUser.avatar_url, points: myPoints },
+        { id: 'compañero_demo', username: 'Carlos R.', avatar_url: 'm-grad-2', points: 30 }
+      ].sort((a, b) => b.points - a.points);
+      setUsersList(localUsers);
+
+      // Agrupar historial local para el calendario
+      const historyLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_history') || '[]');
+      const allLocalLogs = [...historyLogs, ...localLogs];
+      const winners = calculateWinnersMap(allLocalLogs, localUsers);
+      setDailyWinners(winners);
+      return;
+    }
+
+    try {
+      // Obtener usuarios filtrando eliminados
+      const { data: usersData } = await supabase.from('users').select('*');
+      const activeUsersData = (usersData || []).filter(u => !u.username.startsWith('__deleted__'));
+      
+      // Obtener logs completados a partir de la fecha de inicio del proyecto, ignorando registros de prueba del 25 y 26 de julio
+      const projectStart = new Date('2026-07-20T00:00:00Z');
+      const testCutoff = new Date('2026-07-26T16:13:00Z');
+      const { data: rawLogsData } = await supabase
+        .from('snacks_log')
+        .select('user_id, points_earned, status, created_at')
+        .eq('status', 'completed')
+        .gte('created_at', projectStart.toISOString());
+
+      const allLogsData = (rawLogsData || []).filter(log => {
+        const logTime = new Date(log.created_at);
+        const isTestLog = logTime >= new Date('2026-07-25T00:00:00Z') && logTime <= testCutoff;
+        return !isTestLog;
+      });
+
+      // Filtrar para el marcador de hoy
+      const todayStr = getLocalDateKey();
+      const pointsMap = {};
+      allLogsData?.forEach((log) => {
+        const logDateStr = new Date(log.created_at).toLocaleDateString('sv-SE');
+        if (logDateStr === todayStr) {
+          pointsMap[log.user_id] = (pointsMap[log.user_id] || 0) + log.points_earned;
+        }
+      });
+
+      const sortedUsers = activeUsersData.map((u) => ({
+        ...u,
+        points: pointsMap[u.id] || 0
+      })).sort((a, b) => b.points - a.points);
+
+      setUsersList(sortedUsers);
+
+      // Calcular mapa de ganadores diarios para el calendario
+      const winners = calculateWinnersMap(allLogsData || [], activeUsersData);
+      setDailyWinners(winners);
+    } catch (err) {
+      console.error('Error al cargar marcador/historial de Supabase:', err);
+    }
+  }, [currentUser]);
+
+  const fetchActivityFeed = useCallback(async () => {
+    if (!currentUser) return;
+
+    if (!supabase) {
+      // Carga de feed local de respaldo
+      const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(currentUser.id)) || '[]');
+      setActivityFeed(
+        localLogs.map((l) => ({
+          ...l,
+          users: currentUser
+        })).reverse()
+      );
+      return;
+    }
+
+    try {
+      const projectStart = new Date('2026-07-20T00:00:00Z');
+      const testCutoff = new Date('2026-07-26T16:13:00Z');
+      const { data: logsData } = await supabase
+        .from('snacks_log')
+        .select('*, users(username, avatar_url)')
+        .gte('created_at', projectStart.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+      const filteredLogs = (logsData || []).filter(log => {
+        const logTime = new Date(log.created_at);
+        const isTestLog = logTime >= new Date('2026-07-25T00:00:00Z') && logTime <= testCutoff;
+        return !isTestLog;
+      }).slice(0, 10);
+
+      setActivityFeed(filteredLogs || []);
+    } catch (err) {
+      console.error('Error al cargar feed de actividad:', err);
+    }
+  }, [currentUser]);
+
   useEffect(() => {
     if (gameState === 'onboarding' || gameState === 'user_selection' || !currentUser) return;
-
-    const fetchLeaderboard = async () => {
-      if (!supabase) {
-        // Inicializar historial local si no existe para hacer la demostración vistosa
-        if (!localStorage.getItem('movement_snacks_logs_history')) {
-          const mockHistory = [];
-          const today = new Date();
-          const users = [
-            { id: 'local_user', username: currentUser?.username || 'Miquel Ángel', avatar_url: currentUser?.avatar_url || 'm-grad-1' },
-            { id: 'compañero_demo', username: 'Carlos R.', avatar_url: 'm-grad-2' }
-          ];
-          
-          // Generar datos para los últimos 20 días
-          for (let i = 1; i <= 20; i++) {
-            const logDate = new Date();
-            logDate.setDate(today.getDate() - i);
-            
-            // Alternar ganadores entre los dos usuarios
-            const winnerIdx = i % 2 === 0 ? 0 : 1;
-            const loserIdx = winnerIdx === 0 ? 1 : 0;
-            
-            // Ganador del día hace 3-4 snacks
-            const winnerCount = Math.floor(Math.random() * 2) + 3; 
-            for (let j = 0; j < winnerCount; j++) {
-              mockHistory.push({
-                id: `mock_${i}_win_${j}`,
-                user_id: users[winnerIdx].id,
-                category: ['pierna', 'empuje', 'tiron', 'potencia'][Math.floor(Math.random() * 4)],
-                status: 'completed',
-                points_earned: 10,
-                created_at: logDate.toISOString()
-              });
-            }
-            
-            // El otro hace 1-2 snacks
-            const loserCount = Math.floor(Math.random() * 2) + 1; 
-            for (let j = 0; j < loserCount; j++) {
-              mockHistory.push({
-                id: `mock_${i}_lose_${j}`,
-                user_id: users[loserIdx].id,
-                category: ['pierna', 'empuje', 'tiron', 'potencia'][Math.floor(Math.random() * 4)],
-                status: 'completed',
-                points_earned: 10,
-                created_at: logDate.toISOString()
-              });
-            }
-          }
-          localStorage.setItem('movement_snacks_logs_history', JSON.stringify(mockHistory));
-        }
-
-        // Carga de marcador local de respaldo
-        const cachedUser = currentUser || { id: 'local_user', username: 'Miquel', avatar_url: 'm-grad-1' };
-        const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(cachedUser.id)) || '[]');
-        const myPoints = localLogs.filter(l => l.status === 'completed').reduce((sum, l) => sum + (l.points_earned ?? 10), 0);
-
-        const localUsers = [
-          { id: cachedUser.id, username: cachedUser.username, avatar_url: cachedUser.avatar_url, points: myPoints },
-          { id: 'compañero_demo', username: 'Carlos R.', avatar_url: 'm-grad-2', points: 30 }
-        ].sort((a, b) => b.points - a.points);
-        setUsersList(localUsers);
-
-        // Agrupar historial local para el calendario
-        const historyLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_history') || '[]');
-        const allLocalLogs = [...historyLogs, ...localLogs];
-        const winners = calculateWinnersMap(allLocalLogs, localUsers);
-        setDailyWinners(winners);
-        return;
-      }
-
-      try {
-        // Obtener usuarios filtrando eliminados
-        const { data: usersData } = await supabase.from('users').select('*');
-        const activeUsersData = (usersData || []).filter(u => !u.username.startsWith('__deleted__'));
-        
-        // Obtener logs completados a partir de la fecha de inicio del proyecto, ignorando registros de prueba del 25 y 26 de julio
-        const projectStart = new Date('2026-07-20T00:00:00Z');
-        const testCutoff = new Date('2026-07-26T16:13:00Z');
-        const { data: rawLogsData } = await supabase
-          .from('snacks_log')
-          .select('user_id, points_earned, status, created_at')
-          .eq('status', 'completed')
-          .gte('created_at', projectStart.toISOString());
-
-        const allLogsData = (rawLogsData || []).filter(log => {
-          const logTime = new Date(log.created_at);
-          const isTestLog = logTime >= new Date('2026-07-25T00:00:00Z') && logTime <= testCutoff;
-          return !isTestLog;
-        });
-
-        // Filtrar para el marcador de hoy
-        const todayStr = new Date().toLocaleDateString('sv-SE');
-        const pointsMap = {};
-        allLogsData?.forEach((log) => {
-          const logDateStr = new Date(log.created_at).toLocaleDateString('sv-SE');
-          if (logDateStr === todayStr) {
-            pointsMap[log.user_id] = (pointsMap[log.user_id] || 0) + log.points_earned;
-          }
-        });
-
-        const sortedUsers = activeUsersData.map((u) => ({
-          ...u,
-          points: pointsMap[u.id] || 0
-        })).sort((a, b) => b.points - a.points);
-
-        setUsersList(sortedUsers);
-
-        // Calcular mapa de ganadores diarios para el calendario
-        const winners = calculateWinnersMap(allLogsData || [], activeUsersData);
-        setDailyWinners(winners);
-      } catch (err) {
-        console.error('Error al cargar marcador/historial de Supabase:', err);
-      }
-    };
-
-    const fetchActivityFeed = async () => {
-      if (!supabase) {
-        // Carga de feed local de respaldo
-        const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(currentUser.id)) || '[]');
-        setActivityFeed(
-          localLogs.map((l) => ({
-            ...l,
-            users: currentUser
-          })).reverse()
-        );
-        return;
-      }
-
-      try {
-        const projectStart = new Date('2026-07-20T00:00:00Z');
-        const testCutoff = new Date('2026-07-26T16:13:00Z');
-        const { data: logsData } = await supabase
-          .from('snacks_log')
-          .select('*, users(username, avatar_url)')
-          .gte('created_at', projectStart.toISOString())
-          .order('created_at', { ascending: false })
-          .limit(30);
-
-        const filteredLogs = (logsData || []).filter(log => {
-          const logTime = new Date(log.created_at);
-          const isTestLog = logTime >= new Date('2026-07-25T00:00:00Z') && logTime <= testCutoff;
-          return !isTestLog;
-        }).slice(0, 10);
-
-        setActivityFeed(filteredLogs || []);
-      } catch (err) {
-        console.error('Error al cargar feed de actividad:', err);
-      }
-    };
 
     fetchLeaderboard();
     fetchActivityFeed();
@@ -571,7 +571,7 @@ export default function App() {
     return () => {
       supabase.removeChannel(logSubscription);
     };
-  }, [gameState, currentUser]);
+  }, [gameState, currentUser, fetchLeaderboard, fetchActivityFeed, meetingMode]);
 
   // --- Lógica del Temporizador Principal ---
   useEffect(() => {
@@ -754,7 +754,33 @@ export default function App() {
     restoreDailyState(userPayload);
   };
 
-  // Alerta de Snack Activada (Se cumplió el tiempo)
+  // --- Gestión de la Rutina Actual y Avance Diario ---
+  const getCurrentRoutine = useCallback((user) => {
+    const block = getRoutineBlock(user?.lunch_end);
+    const routines = DAILY_ROUTINES[block];
+    const todayKey = getLocalDateKey();
+    const completedIndexKey = `movement_snacks_completed_idx_${user?.id || 'local'}_${todayKey}_${block}`;
+    const lastCompleted = Number.parseInt(localStorage.getItem(completedIndexKey) ?? '-1', 10);
+    const currentIdx = (lastCompleted + 1) % routines.length;
+    return {
+      block,
+      routines,
+      currentIdx,
+      routine: routines[currentIdx],
+      completedCount: Math.min(lastCompleted + 1, routines.length),
+      totalCount: routines.length
+    };
+  }, []);
+
+  const advanceRoutine = useCallback(() => {
+    if (!currentUser) return;
+    const { block, currentIdx } = getCurrentRoutine(currentUser);
+    const todayKey = getLocalDateKey();
+    const completedIndexKey = `movement_snacks_completed_idx_${currentUser.id}_${todayKey}_${block}`;
+    localStorage.setItem(completedIndexKey, String(currentIdx));
+  }, [currentUser, getCurrentRoutine]);
+
+  // Alerta de Snack Activada (Se cumplió el tiempo o clic en Comenzar)
   const triggerSnackAlert = () => {
     if (!meetingMode) {
       playAudioTone(523.25, 0.4); // Nota DO5
@@ -763,17 +789,10 @@ export default function App() {
     
     showDesktopNotification('Es hora de tu snack', 'Pausa activa');
     
-    const block = getRoutineBlock(currentUser?.lunch_end);
-    const routines = DAILY_ROUTINES[block];
-    const routineIndexKey = `movement_snacks_routine_index_${currentUser?.id || 'local'}_${block}`;
-    const lastIdx = Number.parseInt(localStorage.getItem(routineIndexKey) || '-1', 10);
-    const nextIdx = (lastIdx + 1) % routines.length;
-    const selectedRoutine = routines[nextIdx];
-    localStorage.setItem(routineIndexKey, String(nextIdx));
-
-    setActiveRoutineName(selectedRoutine.routineName);
-    setActivePhases(selectedRoutine.phases);
-    setActiveCategory(selectedRoutine.category);
+    const { routine } = getCurrentRoutine(currentUser);
+    setActiveRoutineName(routine.routineName);
+    setActivePhases(routine.phases);
+    setActiveCategory(routine.category);
     setGameState('preview_card');
   };
 
@@ -789,62 +808,68 @@ export default function App() {
     runWorkoutTimer();
   };
 
-  // Cronómetro del ejercicio activo con fase de preparación inicial de 5 segundos
+  // Cronómetro del ejercicio activo con fase de preparación inicial y precisión basada en marcas de tiempo
   const runWorkoutTimer = () => {
     setCurrentPhaseIndex(0);
-    setSecondsInPhase(5);
     setInTransition(true);
 
     let phaseIdx = 0;
-    let secLeft = activePhases[0].duration;
     let isTrans = true;
-    let transLeft = 5;
+    const TRANSITION_DURATION = 5;
+    let phaseDuration = TRANSITION_DURATION;
+    let phaseStartTime = Date.now();
+    let lastBeepSec = -1;
+
+    setSecondsInPhase(TRANSITION_DURATION);
+
+    if (activeSnackTimerRef.current) clearInterval(activeSnackTimerRef.current);
 
     activeSnackTimerRef.current = setInterval(() => {
-      if (isTrans) {
-        // En transición de preparación de 5 segundos
-        transLeft--;
-        setSecondsInPhase(transLeft);
+      const now = Date.now();
+      const elapsed = Math.floor((now - phaseStartTime) / 1000);
+      const remaining = Math.max(0, phaseDuration - elapsed);
 
-        if (transLeft > 0) {
-          // Pitido de cuenta atrás en transición (grave y seco)
+      setSecondsInPhase(remaining);
+
+      if (isTrans) {
+        // En transición de preparación
+        if (remaining > 0 && remaining !== lastBeepSec) {
+          lastBeepSec = remaining;
           playAudioTone(580, 0.08);
         }
 
-        if (transLeft <= 0) {
+        if (remaining <= 0) {
           // Finaliza la transición: Pitido agudo de inicio ("Ya!")
           playAudioTone(880, 0.22);
           isTrans = false;
           setInTransition(false);
-          
-          secLeft = activePhases[phaseIdx].duration;
-          setSecondsInPhase(secLeft);
+          phaseDuration = activePhases[phaseIdx].duration;
+          phaseStartTime = Date.now();
+          lastBeepSec = -1;
+          setSecondsInPhase(phaseDuration);
         }
       } else {
         // En ejercicio activo
-        secLeft--;
-        setSecondsInPhase(secLeft);
-
-        // Pitidos cortos tipo Garmin en los últimos 5 segundos de la fase
-        if (secLeft <= 5 && secLeft > 0) {
-          playAudioTone(1000, 0.05); // Pitido corto y agudo
+        if (remaining <= 5 && remaining > 0 && remaining !== lastBeepSec) {
+          lastBeepSec = remaining;
+          playAudioTone(1000, 0.05); // Pitido corto y agudo tipo Garmin
         }
 
-        if (secLeft <= 0) {
-          // Avanzar de fase
+        if (remaining <= 0) {
           phaseIdx++;
           if (phaseIdx < activePhases.length) {
             // Triple pitido de cambio (pip, pip, piiip)
             playAudioTone(1100, 0.06);
             setTimeout(() => playAudioTone(1100, 0.06), 120);
             setTimeout(() => playAudioTone(1100, 0.12), 240);
-            
-            // Entrar en fase de transición de 5 segundos
+
             isTrans = true;
             setInTransition(true);
-            setCurrentPhaseIndex(phaseIdx); // Mostrar el siguiente ejercicio en pantalla
-            transLeft = 5;
-            setSecondsInPhase(transLeft);
+            setCurrentPhaseIndex(phaseIdx);
+            phaseDuration = TRANSITION_DURATION;
+            phaseStartTime = Date.now();
+            lastBeepSec = -1;
+            setSecondsInPhase(TRANSITION_DURATION);
           } else {
             // Snack completado!
             clearInterval(activeSnackTimerRef.current);
@@ -852,7 +877,7 @@ export default function App() {
           }
         }
       }
-    }, 1000);
+    }, 250);
   };
 
   // Completado con Éxito
@@ -861,37 +886,78 @@ export default function App() {
     setTimeout(() => playAudioTone(1046.5, 0.4), 100); // Tono de victoria
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
+    if (activeSnackTimerRef.current) clearInterval(activeSnackTimerRef.current);
+
+    const { routine } = getCurrentRoutine(currentUser);
+    const routineCategory = activeCategory || routine.category;
+    const routinePhases = activePhases.length > 0 ? activePhases : routine.phases;
+
     const logPayload = {
       id: Math.random().toString(36).substr(2, 9),
       user_id: currentUser.id,
-      category: activeCategory,
-      exercises_performed: activePhases.map(p => p.name),
+      category: routineCategory,
+      exercises_performed: routinePhases.map(p => p.name),
       status: 'completed',
       points_earned: 10,
       created_at: new Date().toISOString()
     };
 
-    // Guardar localmente
+    // 1. Guardar localmente
     const localLogs = JSON.parse(localStorage.getItem(getDailyLogStorageKey(currentUser.id)) || '[]');
     localLogs.push(logPayload);
     localStorage.setItem(getDailyLogStorageKey(currentUser.id), JSON.stringify(localLogs));
 
+    // 2. Avanzar el índice de la rutina ahora que se ha completado
+    advanceRoutine();
+
+    // 3. Actualización optimista inmediata en UI
+    setActivityFeed(prev => [{ ...logPayload, users: currentUser }, ...prev.slice(0, 9)]);
+    setUsersList(prev => {
+      const exists = prev.some(u => u.id === currentUser.id);
+      if (exists) {
+        return prev.map(u => u.id === currentUser.id ? { ...u, points: (u.points || 0) + 10 } : u).sort((a, b) => b.points - a.points);
+      }
+      return [...prev, { ...currentUser, points: 10 }].sort((a, b) => b.points - a.points);
+    });
+
+    const todayStr = getLocalDateKey();
+    setDailyWinners(prev => {
+      const currentToday = prev[todayStr];
+      const newPoints = (currentToday?.winner?.id === currentUser.id ? currentToday.points : 0) + 10;
+      return {
+        ...prev,
+        [todayStr]: {
+          winner: currentUser,
+          points: (currentToday && currentToday.winner?.id === currentUser.id) ? (currentToday.points + 10) : ((currentToday?.points || 0) < 10 ? 10 : currentToday.points),
+          scores: [{ user: currentUser, points: newPoints }]
+        }
+      };
+    });
+
+    // 4. Sincronizar en base de datos
     if (supabase) {
       try {
-        await supabase.from('snacks_log').insert({
+        const { error } = await supabase.from('snacks_log').insert({
           user_id: logPayload.user_id,
           category: logPayload.category,
           exercises_performed: logPayload.exercises_performed,
           status: logPayload.status,
           points_earned: logPayload.points_earned
         });
+        if (error) {
+          console.error('Error al guardar log en Supabase:', error);
+        } else {
+          fetchLeaderboard();
+          fetchActivityFeed();
+        }
       } catch (err) {
         console.error('Error al guardar log en Supabase:', err);
       }
     } else {
-      // Forzar actualización inmediata en UI si estamos en modo local
-      setActivityFeed(localLogs.map(l => ({ ...l, users: currentUser })).reverse());
-      setUsersList(prev => prev.map(u => u.id === currentUser.id ? { ...u, points: u.points + 10 } : u));
+      const historyLogs = JSON.parse(localStorage.getItem('movement_snacks_logs_history') || '[]');
+      const allLocalLogs = [...historyLogs, ...localLogs];
+      const localUsers = JSON.parse(localStorage.getItem('movement_snacks_users_local') || '[]');
+      setDailyWinners(calculateWinnersMap(allLocalLogs, localUsers.length > 0 ? localUsers : [currentUser]));
     }
 
     // Programar el siguiente
@@ -899,6 +965,12 @@ export default function App() {
     const minutes = currentUser?.reminder_interval || 45;
     setNextSnackTime(new Date(Date.now() + minutes * 60 * 1000));
     setSecondsToNextSnack(minutes * 60);
+
+    const nextInfo = getCurrentRoutine(currentUser);
+    setActiveRoutineName(nextInfo.routine.routineName);
+    setActivePhases(nextInfo.routine.phases);
+    setActiveCategory(nextInfo.routine.category);
+
     setGameState('idle_countdown');
   };
 
@@ -927,10 +999,13 @@ export default function App() {
     playAudioTone(220, 0.5); // Beep triste
     if (activeSnackTimerRef.current) clearInterval(activeSnackTimerRef.current);
 
+    const { routine } = getCurrentRoutine(currentUser);
+    const routineCategory = activeCategory || routine.category;
+
     const logPayload = {
       id: Math.random().toString(36).substr(2, 9),
       user_id: currentUser.id,
-      category: activeCategory,
+      category: routineCategory,
       exercises_performed: [],
       status: reason === 'snooze_limit' ? 'snoozed_limit' : 'skipped',
       points_earned: 0,
@@ -942,6 +1017,11 @@ export default function App() {
     localLogs.push(logPayload);
     localStorage.setItem(getDailyLogStorageKey(currentUser.id), JSON.stringify(localLogs));
 
+    // Si se salta, avanzar al siguiente snack
+    advanceRoutine();
+
+    setActivityFeed(prev => [{ ...logPayload, users: currentUser }, ...prev.slice(0, 9)]);
+
     if (supabase) {
       try {
         await supabase.from('snacks_log').insert({
@@ -951,11 +1031,10 @@ export default function App() {
           status: logPayload.status,
           points_earned: logPayload.points_earned
         });
+        fetchActivityFeed();
       } catch (err) {
         console.error('Error al guardar log de salto en Supabase:', err);
       }
-    } else {
-      setActivityFeed(localLogs.map(l => ({ ...l, users: currentUser })).reverse());
     }
 
     // Programar el siguiente
@@ -963,6 +1042,12 @@ export default function App() {
     const minutes = currentUser?.reminder_interval || 45;
     setNextSnackTime(new Date(Date.now() + minutes * 60 * 1000));
     setSecondsToNextSnack(minutes * 60);
+
+    const nextInfo = getCurrentRoutine(currentUser);
+    setActiveRoutineName(nextInfo.routine.routineName);
+    setActivePhases(nextInfo.routine.phases);
+    setActiveCategory(nextInfo.routine.category);
+
     setGameState('idle_countdown');
   };
 
@@ -1458,13 +1543,28 @@ export default function App() {
                   )}
                 </div>
 
-                <div style={{ textAlign: 'center', borderTop: '1.5px solid var(--border-color)', paddingTop: '20px' }}>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '16px' }}>
+                <div style={{ textAlign: 'center', borderTop: '1.5px solid var(--border-color)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
                     Levántate, separa el teclado y colócate en posición.
                   </p>
-                  <button className="db-btn db-btn-accent" style={{ width: '100%', fontSize: '1.05rem', padding: '16px' }} onClick={handleStartSnack}>
-                    Comenzar Snack de 2 Minutos
-                  </button>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '12px' }}>
+                    <button className="db-btn db-btn-accent" style={{ fontSize: '1rem', padding: '14px' }} onClick={handleStartSnack}>
+                      ⏱️ Iniciar Temporizador (2 Min)
+                    </button>
+                    <button className="db-btn db-btn-secondary" style={{ fontSize: '0.9rem', padding: '14px', borderColor: 'var(--accent)', color: 'var(--accent)', fontWeight: 700 }} onClick={handleSnackCompleted}>
+                      ✅ Ya realizado (+10 pts)
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    <button className="db-btn db-btn-secondary" style={{ flex: 1, padding: '10px', fontSize: '0.8rem' }} onClick={() => handleSnooze(10)}>
+                      ⏸️ Posponer 10 min
+                    </button>
+                    <button className="db-btn db-btn-secondary" style={{ flex: 1, padding: '10px', fontSize: '0.8rem' }} onClick={() => setGameState('idle_countdown')}>
+                      ↩️ Guardar para luego (Tengo reunión)
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1557,17 +1657,24 @@ export default function App() {
                   })}
                 </div>
 
-                {/* Controles de Emergencia / Posponer */}
-                <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
+                {/* Controles de Emergencia / Finalización / Posponer */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '12px', marginTop: '10px' }}>
+                  <button
+                    className="db-btn db-btn-accent"
+                    style={{ padding: '10px', fontSize: '0.85rem' }}
+                    onClick={handleSnackCompleted}
+                  >
+                    ✅ Completar ya (+10 pts)
+                  </button>
                   <button
                     className="db-btn db-btn-secondary"
-                    style={{ flex: 1, padding: '10px' }}
+                    style={{ padding: '10px', fontSize: '0.85rem' }}
                     onClick={() => handleSnooze(5)}
                     disabled={snoozeCount >= 3}
                   >
                     Posponer 5 min ({snoozeCount}/3)
                   </button>
-                  <button className="db-btn db-btn-secondary" style={{ flex: 1, padding: '10px' }} onClick={() => handleSkipSnack('skipped')}>
+                  <button className="db-btn db-btn-secondary" style={{ padding: '10px', fontSize: '0.85rem' }} onClick={() => handleSkipSnack('skipped')}>
                     Saltar
                   </button>
                 </div>
@@ -1631,23 +1738,36 @@ export default function App() {
                  );
                }
 
+               const { routine, completedCount, totalCount } = getCurrentRoutine(currentUser);
                return (
-                 <div className="db-card" style={{ alignItems: 'center', padding: '48px 32px' }}>
+                 <div className="db-card" style={{ alignItems: 'center', padding: '40px 32px' }}>
                    <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.1em' }}>
-                     Siguiente Snack: {categoryLabels[activeCategory].toUpperCase()}
+                     Siguiente: {routine?.routineName || categoryLabels[activeCategory]?.toUpperCase()}
                    </div>
-                   <div className="timer-countdown" style={{ margin: '24px 0', fontSize: '5.5rem' }}>
+                   <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent)', marginTop: '4px' }}>
+                     {completedCount} de {totalCount} rutinas completadas hoy
+                   </div>
+                   <div className="timer-countdown" style={{ margin: '20px 0', fontSize: '5.5rem' }}>
                      {formatTime(secondsToNextSnack)}
                    </div>
-                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '32px', textAlign: 'center' }}>
+                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', textAlign: 'center' }}>
                      Concéntrate en tu trabajo. Cuando el contador llegue a cero, te avisaremos para activar el cuerpo.
                    </div>
-                   <div style={{ display: 'flex', gap: '16px' }}>
+                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
                      <button className="db-btn db-btn-accent" onClick={triggerSnackAlert}>
                        Comenzar Snack Ya
                      </button>
                      <button className="db-btn db-btn-secondary" onClick={() => handleSnooze(10)}>
                        Posponer 10 min
+                     </button>
+                     <button className="db-btn db-btn-secondary" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={() => {
+                       const { routine: currR } = getCurrentRoutine(currentUser);
+                       setActiveRoutineName(currR.routineName);
+                       setActivePhases(currR.phases);
+                       setActiveCategory(currR.category);
+                       handleSnackCompleted();
+                     }}>
+                       ✅ Ya lo hice (+10 pts)
                      </button>
                    </div>
                  </div>
