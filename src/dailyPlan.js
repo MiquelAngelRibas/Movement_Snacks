@@ -70,10 +70,10 @@ export const DAILY_ROUTINES = {
       category: 'empuje',
       routineName: '3. Empuje y estabilidad',
       phases: [
-        warmup(),
-        phase('Flexiones de Rodilla', 'pushup', 'Pectorales, Tríceps', 'Mantén el tronco alineado y baja de forma controlada.'),
-        phase('Toques de Hombro', 'plank', 'Core, Deltoides, Tríceps', 'En plancha, toca el hombro contrario sin girar la cadera.'),
-        phase('Flexiones de Pica', 'pike_pushup', 'Deltoides, Tríceps', 'Desde una V invertida, dirige la coronilla hacia el suelo.'),
+        phase('Saltos Suaves en el Sitio', 'butt_kicks', 'Cardio, Piernas, Pantorrillas', 'Da pequeños saltos suaves sobre las puntas de los pies con brazos relajados.', 10),
+        phase('Toques de Hombro', 'plank', 'Core, Deltoides, Tríceps', 'En plancha alta, toca el hombro contrario alternando sin balancear la cadera.'),
+        phase('Flexiones de Rodilla', 'pushup', 'Pectorales, Tríceps, Core', 'Apoya rodillas en el suelo, mantén el tronco alineado y flexiona los codos con control.'),
+        phase('Flexiones en Suelo', 'pushup', 'Pectorales, Tríceps, Core', 'En plancha completa, desciende el pecho hacia el suelo manteniendo el cuerpo en bloque.'),
         cooldown()
       ]
     },
