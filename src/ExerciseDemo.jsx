@@ -4,7 +4,11 @@ import ExerciseMannequin from './ExerciseMannequin';
 const assetNames = {
   'Carrera Suave en el Sitio': 'Butt Kicks',
   'Marcha Activa': 'Rodillas Arriba',
-  'Escalador con Rotación Torácica': 'Escaladores'
+  'Escalador con Rotación Torácica': 'Escaladores',
+  'Jumping Jacks Suaves': 'Half Jacks',
+  'Saltos Suaves en el Sitio': 'Butt Kicks',
+  'Ángeles de Pared': 'Chest Expansions',
+  'Remo Renegado con Kettlebell': 'Commandos'
 };
 
 function BreathingVisual({ compact }) {

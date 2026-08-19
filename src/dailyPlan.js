@@ -60,8 +60,8 @@ export const DAILY_ROUTINES = {
       phases: [
         warmup(),
         phase('Buenos Días', 'good_morning', 'Isquiotibiales, Glúteos, Lumbar', 'Haz una bisagra de cadera con la espalda larga.'),
-        phase('Ángeles de Pared', 'wall_angels', 'Deltoides, Trapecio, Escápulas', 'Desliza los brazos por la pared sin despegar la espalda.'),
-        phase('Superman Alternado', 'superman', 'Lumbar, Glúteos, Espalda Alta', 'Eleva brazo y pierna contrarios alternando.'),
+        phase('Ángeles de Pared', 'wall_angels', 'Deltoides, Trapecio, Escápulas', 'Abre el pecho y eleva los brazos activando trapecio y escápulas.'),
+        phase('Remo Renegado con Kettlebell', 'plank', 'Dorsales, Espalda Media, Core, Bíceps', 'En posición de plancha sobre kettlebells, rema con un codo hacia el costado alternando de lado con la cadera firme.'),
         cooldown()
       ]
     },
