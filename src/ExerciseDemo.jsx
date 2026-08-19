@@ -8,7 +8,7 @@ const assetNames = {
   'Jumping Jacks Suaves': 'Half Jacks',
   'Saltos Suaves en el Sitio': 'Butt Kicks',
   'Ángeles de Pared': 'Chest Expansions',
-  'Remo Renegado con Kettlebell': 'Commandos'
+  'Remo Renegado con Kettlebell': 'Remo Renegado con Kettlebell'
 };
 
 function BreathingVisual({ compact }) {
